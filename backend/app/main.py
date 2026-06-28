@@ -1,28 +1,32 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
+from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.logging import configure_logging, get_logger
+
+# Configure logging once when the application starts
+configure_logging()
+logger = get_logger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting OptiVest API")
+    yield
+    logger.info("Stopping OptiVest API")
+
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
+    description="Portfolio Optimization and Risk Analytics Platform.",
+    lifespan=lifespan,
 )
 
-
-@app.get("/", tags=["Root"])
-async def root():
-    return {
-        "message": "Welcome to OptiVest API",
-        "version": settings.app_version,
-    }
-
-
-@app.get("/health", tags=["Health"])
-async def health():
-    return {
-        "status": "healthy",
-        "environment": settings.environment,
-    }
-
+# Register all API routes
+app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
