@@ -1,35 +1,30 @@
-from app.schemas.auth import (
-    UserRegister,
-    UserLogin,
-    Token,
-    TokenPayload,
-    UserResponse,
-)
+from app.database.session import SessionLocal
+from app.schemas.auth import UserLogin, UserRegister
+from app.services.auth_service import AuthService
 
-register = UserRegister(
-    email="john@example.com",
-    full_name="John Doe",
-    password="Password123!",
-)
+db = SessionLocal()
 
-print(register)
+try:
+    user = AuthService.register(
+        db,
+        UserRegister(
+            email="john@example.com",
+            full_name="John Doe",
+            password="Password123!",
+        ),
+    )
 
-login = UserLogin(
-    email="john@example.com",
-    password="Password123!",
-)
+    print(user.email)
 
-print(login)
+    token = AuthService.authenticate(
+        db,
+        UserLogin(
+            email="john@example.com",
+            password="Password123!",
+        ),
+    )
 
-token = Token(
-    access_token="sample-token",
-)
+    print(token)
 
-print(token)
-
-payload = TokenPayload(
-    sub="john@example.com",
-    exp=1234567890,
-)
-
-print(payload)
+finally:
+    db.close()

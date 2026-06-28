@@ -8,6 +8,7 @@ from app.database.base import Base
 
 config = context.config
 
+import app.models
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -9,5 +9,9 @@ description = "Backend API for OptiVest"
 requires-python = ">=3.11"
 
 authors = [
-    {name = "Arceus"}
+    { name = "Arceus" }
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
