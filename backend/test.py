@@ -1,27 +1,35 @@
-from app.core.security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    decode_access_token,
+from app.schemas.auth import (
+    UserRegister,
+    UserLogin,
+    Token,
+    TokenPayload,
+    UserResponse,
 )
 
-password = "Password123!"
-
-hashed = hash_password(password)
-
-print(hashed)
-
-print(
-    verify_password(
-        password,
-        hashed,
-    )
+register = UserRegister(
+    email="john@example.com",
+    full_name="John Doe",
+    password="Password123!",
 )
 
-token = create_access_token("test@example.com")
+print(register)
+
+login = UserLogin(
+    email="john@example.com",
+    password="Password123!",
+)
+
+print(login)
+
+token = Token(
+    access_token="sample-token",
+)
 
 print(token)
 
-payload = decode_access_token(token)
+payload = TokenPayload(
+    sub="john@example.com",
+    exp=1234567890,
+)
 
 print(payload)
