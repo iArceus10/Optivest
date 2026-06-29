@@ -6,9 +6,9 @@
 
 **Project:** OptiVest – Portfolio Optimization & Risk Analytics Platform
 
-**Current Phase:** Phase 2 – Portfolio Domain Foundation (Ready to Begin)
+**Current Phase:** Phase 3 – Market Data Foundation (Ready to Begin)
 
-**Last Completed Phase:** Phase 1 – Authentication
+**Last Completed Phase:** Phase 2 – Portfolio Domain Foundation
 
 **Status:** Stable
 
@@ -16,14 +16,14 @@
 
 # 1. Executive Summary
 
-OptiVest is a production-quality fintech platform being developed for IIT campus placements.
+OptiVest is a production-quality Portfolio Optimization & Risk Analytics platform being developed for IIT campus placements.
 
 Primary goals:
 
 * Production-quality software engineering
 * Quantitative finance implementation
 * Interview-defensible architecture
-* Clean layered modular monolith
+* Layered Modular Monolith
 * High code quality
 * Maintainability
 * Extensibility
@@ -65,18 +65,36 @@ Completed
 * User Migration
 * Registration
 * Login
-* Password Hashing (bcrypt)
 * JWT Authentication
+* Password Hashing
 * OAuth2PasswordBearer
 * Current User Dependency
-* Protected Endpoint (/auth/me)
-* Security Tests
-* API Integration Tests
+* Protected Endpoints
 * Shared Test Infrastructure
 
 ---
 
-## Phase 2 – Portfolio Management
+## Phase 2 – Portfolio Domain Foundation
+
+Status
+
+✅ Complete
+
+Completed
+
+* Portfolio ORM
+* Portfolio Migration
+* User ↔ Portfolio Relationship
+* Portfolio Schemas
+* Portfolio Service
+* Portfolio CRUD API
+* Ownership Validation
+* Transaction Rollback
+* Portfolio Integration Tests
+
+---
+
+## Phase 3 – Market Data Foundation
 
 Status
 
@@ -85,8 +103,6 @@ Status
 ---
 
 ## Future Phases
-
-⏳ Market Data
 
 ⏳ Portfolio Analytics
 
@@ -122,6 +138,10 @@ v1/
 
 ✔ root.py
 
+✔ portfolio.py
+
+✔ router.py
+
 core/
 
 ✔ config.py
@@ -136,27 +156,33 @@ database/
 
 ✔ session.py
 
+financial_engines/
+
+⬜ market_data/
+
+⬜ optimization/
+
+⬜ simulation/
+
+⬜ risk/
+
 models/
 
 ✔ user.py
 
-⬜ portfolio.py
+✔ portfolio.py
 
 schemas/
 
 ✔ auth.py
 
-⬜ portfolio.py
+✔ portfolio.py
 
 services/
 
 ✔ auth_service.py
 
-⬜ portfolio_service.py
-
-financial_engines/
-
-⬜ Empty
+✔ portfolio_service.py
 
 tests/
 
@@ -165,6 +191,8 @@ tests/
 ✔ test_security.py
 
 ✔ test_auth_api.py
+
+✔ test_portfolio_api.py
 
 ---
 
@@ -176,297 +204,177 @@ Status
 
 Features
 
-* Password hashing using bcrypt
-* Password verification
-* JWT Access Tokens
-* JWT Validation
-* Email normalization
+* Password hashing
+* JWT Authentication
+* OAuth2 Bearer
+* Protected endpoints
 * Transaction rollback
-* OAuth2 Bearer Authentication
-* Protected Routes
-
-Authentication Flow
-
-Register
-
-↓
-
-Hash Password
-
-↓
-
-Store User
-
-↓
-
-Login
-
-↓
-
-Verify Password
-
-↓
-
-Generate JWT
-
-↓
-
-Bearer Token
-
-↓
-
-Protected API
 
 ---
 
-# 5. API Inventory
-
-Health
-
-GET /health
+# 5. Portfolio Module
 
 Status
 
-✅
+✅ Production Ready
 
-Root
+Features
 
-GET /
-
-Status
-
-✅
-
-Authentication
-
-POST /api/v1/auth/register
-
-Status
-
-✅
-
-POST /api/v1/auth/login
-
-Status
-
-✅
-
-GET /api/v1/auth/me
-
-Status
-
-✅
-
-Portfolio
-
-Not Started
+* Portfolio CRUD
+* User ownership validation
+* User ↔ Portfolio relationship
+* SQLAlchemy ORM
+* Alembic migration
+* API schemas
+* Service layer
+* CRUD REST API
+* Integration tests
+* Ownership security test
 
 ---
 
 # 6. Database Status
 
-Current Tables
+Tables
 
-users
+✔ users
 
-Fields
+✔ portfolios
 
-* id
-* email
-* full_name
-* hashed_password
-* is_active
-* created_at
-* updated_at
+Pending
 
-Pending Tables
+⬜ holdings
 
-portfolio
+⬜ assets
 
-portfolio_holdings
+⬜ market_prices
 
-assets
-
-transactions
-
-market_prices
+⬜ portfolio_snapshots
 
 ---
 
-# 7. Testing Status
+# 7. API Inventory
+
+Root
+
+GET /
+
+Health
+
+GET /health
+
+Authentication
+
+POST /api/v1/auth/register
+
+POST /api/v1/auth/login
+
+GET /api/v1/auth/me
+
+Portfolio
+
+POST /api/v1/portfolios
+
+GET /api/v1/portfolios
+
+GET /api/v1/portfolios/{id}
+
+PATCH /api/v1/portfolios/{id}
+
+DELETE /api/v1/portfolios/{id}
+
+---
+
+# 8. Testing Status
 
 Infrastructure
 
-✔ pytest configured
+✔ Shared SQLite test database
 
-✔ conftest.py
+✔ Dependency overrides
 
-✔ isolated SQLite test database
-
-✔ dependency overrides
+✔ Shared TestClient fixture
 
 Security Tests
-
-✔ Password Hash
-
-✔ Password Verify
-
-✔ JWT Create
-
-✔ JWT Decode
-
-Result
 
 5 / 5 Passing
 
 Authentication Tests
 
-✔ Register
-
-✔ Duplicate Register
-
-✔ Login
-
-✔ Wrong Password
-
-✔ Protected Route
-
-✔ Invalid Token
-
-Result
-
 6 / 6 Passing
+
+Portfolio Tests
+
+7 / 7 Passing
 
 Current Total
 
-11 Passing Tests
+18 Passing Tests
 
 ---
 
-# 8. Engineering Decisions
-
-Decision 1
-
-Layered Modular Monolith
-
-Status
+# 9. Engineering Decisions
 
 Accepted
 
-Decision 2
+✔ Layered Modular Monolith
 
-No Repository Pattern
+✔ No Repository Pattern
 
-Status
+✔ Business Logic in Services
 
-Accepted
+✔ JWT Authentication
 
-Decision 3
+✔ Shared pytest fixtures
 
-Business Logic inside Services
+✔ SQLite test database
 
-Status
+✔ Ownership validation via Service Layer
 
-Accepted
+✔ Resource existence hiding (404 instead of 403)
 
-Decision 4
-
-JWT stores immutable User UUID
-
-Status
-
-Accepted
-
-Decision 5
-
-Authentication dependency implemented using OAuth2PasswordBearer
-
-Status
-
-Accepted
-
-Decision 6
-
-Shared pytest fixtures via conftest.py
-
-Status
-
-Accepted
-
-Decision 7
-
-SQLite isolated test database for API tests
-
-Status
-
-Accepted
-
----
-
-# 9. Known Limitations
-
-Not Implemented
-
-* Refresh Tokens
-* Role-Based Authorization
-* Password Reset
-* Email Verification
-* Multi-Factor Authentication
-
-Reason
-
-Deferred to Version 2.
+✔ TYPE_CHECKING for ORM relationships
 
 ---
 
 # 10. Current Code Quality
 
-Architecture
+Architecture ★★★★★
 
-★★★★★
+Testing ★★★★★
 
-Readability
+Readability ★★★★★
 
-★★★★★
+Maintainability ★★★★★
 
-Testing
-
-★★★★★
-
-Maintainability
-
-★★★★★
-
-Interview Readiness
-
-★★★★★
+Interview Readiness ★★★★★
 
 ---
 
 # 11. Next Phase
 
-Phase 2
+Phase 3 – Market Data Foundation
 
-Portfolio Domain Foundation
+Implement
 
-To Implement
+* Financial Engine structure
+* Yahoo Finance integration
+* Historical price retrieval
+* Daily returns calculation
+* Annualization utilities
+* Market data validation
+* Error handling
+* Market data tests
 
-* Portfolio ORM
-* Portfolio Schemas
-* Portfolio Service
-* Portfolio CRUD APIs
-* Alembic Migration
-* Portfolio Tests
+No optimization yet.
 
-No optimization logic.
+No Monte Carlo.
 
-No financial calculations.
+No portfolio analytics.
 
-No market data.
+No risk metrics.
 
-No analytics.
-
-Only Portfolio CRUD.
+Only market data retrieval and preprocessing.
 
 ---
 
@@ -478,13 +386,13 @@ Completed
 
 ✅ Authentication
 
+✅ Portfolio CRUD
+
 Pending
 
-⬜ Portfolio CRUD
-
-⬜ Asset Model
-
 ⬜ Holdings
+
+⬜ Market Data
 
 ⬜ Portfolio Analytics
 
@@ -497,7 +405,5 @@ Pending
 ⬜ Reporting
 
 ⬜ Frontend
-
----
 
 END OF STATE
