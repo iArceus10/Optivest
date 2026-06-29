@@ -596,6 +596,54 @@ This minimizes debugging complexity and ensures higher layers depend on stable l
 
 ---
 
+Decision 030
+Statistics Service
+
+StatisticsService is responsible only for orchestration.
+
+Responsibilities
+
+Retrieve daily returns
+Invoke Statistics Financial Engine
+Perform business validation
+
+StatisticsService never performs mathematical calculations.
+
+Reason
+
+Maintains strict separation between orchestration and quantitative finance algorithms.
+
+Decision 031
+Statistics Serialization
+
+Statistics Financial Engines communicate internally using
+
+Pandas DataFrames
+Pandas Series
+
+Serialization into JSON occurs exclusively inside the API layer using dedicated response schemas.
+
+Reason
+
+Preserves framework independence of Financial Engines while exposing stable API contracts.
+
+Decision 032
+Portfolio Volatility Engine Interface
+
+The Portfolio Volatility engine accepts
+
+Daily Returns
+
+rather than a covariance matrix.
+
+The engine internally computes the annualized covariance matrix before calculating volatility.
+
+Reason
+
+Encapsulates covariance computation.
+Avoids duplication across services.
+Provides a simpler and more cohesive public API for future Optimization and Monte Carlo modules.
+
 # Current Accepted Architecture
 
 ```
@@ -651,3 +699,168 @@ Phase 8
 - Benchmark Comparison
 
 Future decisions should extend this document without modifying previously accepted architecture unless absolutely necessary.
+
+## 06_DECISIONS.md
+
+# Phase 5 Decisions
+
+## Optimization Package Introduced
+
+A dedicated optimization package was introduced under the Financial Engine.
+
+```
+financial_engines/
+    optimization/
+```
+
+This isolates portfolio optimization from market data and statistics while preserving framework independence.
+
+---
+
+## Shared Optimization Infrastructure
+
+A private `_base.py` module centralizes:
+
+* CVXPY variable creation
+* Constraint creation
+* Optimization solving
+* Numerical cleanup
+
+This avoids duplicated optimization code across multiple optimizers.
+
+---
+
+## Constraint Composition
+
+Constraints are now composed rather than hardcoded.
+
+Separate helpers exist for:
+
+* Fully Invested
+* Long Only
+
+This allows different optimizers to reuse only the constraints they require.
+
+---
+
+## Framework Independence
+
+Optimization engines remain completely independent of:
+
+* FastAPI
+* SQLAlchemy
+* Pydantic
+
+They operate purely on NumPy, Pandas, and CVXPY objects.
+
+---
+
+## Maximum Sharpe Formulation
+
+Maximum Sharpe is implemented using a convex reformulation rather than direct fractional optimization.
+
+Reasons:
+
+* DCP compliant
+* Numerically stable
+* Industry standard
+* Compatible with CVXPY
+
+---
+
+## Efficient Frontier Domain Model
+
+Efficient Frontier returns immutable domain objects:
+
+```
+EfficientFrontierPoint
+```
+
+instead of dictionaries.
+
+Reasons:
+
+* Strong typing
+* Better readability
+* Easier future extension
+* Cleaner service layer
+
+---
+
+## Efficient Frontier Implementation
+
+Efficient Frontier generation uses:
+
+* Internal helper for a single frontier point
+* Configurable frontier size
+* Numerical safeguards
+* Non-decreasing target returns
+
+---
+
+## Solver Selection
+
+Solver selection is delegated to CVXPY.
+
+The project intentionally uses:
+
+```python
+problem.solve()
+```
+
+instead of forcing a specific solver.
+
+Reason:
+
+The optimization package now contains both:
+
+* Quadratic Programs (QP)
+* Quadratically Constrained Programs (QCQP)
+
+Automatic solver selection correctly dispatches to an appropriate solver.
+
+---
+
+## Testing Philosophy
+
+Optimization tests validate mathematical invariants rather than exact numerical solutions.
+
+Tests verify:
+
+* Asset ordering
+* Long-only constraints
+* Fully invested portfolios
+* Deterministic behaviour
+* Numerical validity
+
+This avoids brittle solver-specific tests while ensuring mathematical correctness.
+
+---
+
+## Current Architecture
+
+The layered architecture remains unchanged.
+
+```
+API
+
+↓
+
+Services
+
+↓
+
+Financial Engines
+
+↓
+
+Database
+```
+
+Financial Engines continue to contain all quantitative finance logic.
+
+Services remain orchestration and business logic only.
+
+APIs remain HTTP-only.
+
+This separation will continue through the remaining phases.

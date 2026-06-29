@@ -299,6 +299,9 @@ app/
 │       ├── portfolio.py
 │       ├── root.py
 │       └── router.py
+│       ├── statistics.py
+│      
+|    
 │
 ├── core/
 │   ├── config.py
@@ -332,11 +335,13 @@ app/
 │   ├── auth.py
 │   ├── market_data.py
 │   └── portfolio.py
+│   └──statistics.py 
 │
 ├── services/
 │   ├── auth_service.py
 │   ├── market_data_service.py
 │   └── portfolio_service.py
+│   ├── statistics_services.py
 │
 └── main.py
 
@@ -344,6 +349,10 @@ tests/
 
 ├── financial_engines/
 │   ├── market_data/
+│   └── services/
+|   |    └──test_statistics_api.py
+│   └── api/
+|       └──test_statistics_api.py
 │   └── statistics/
 │       ├── test_expected_returns.py
 │       ├── test_covariance.py
@@ -368,10 +377,11 @@ Completed
 - Authentication
 - Portfolio
 - Market Data
+- Statistics
 
 Pending
 
-- Statistics
+
 - Optimization
 - Simulation
 - Risk
@@ -385,10 +395,11 @@ Completed
 - AuthService
 - PortfolioService
 - MarketDataService
+- StatisticsService
 
 Pending
 
-- StatisticsService
+
 - OptimizationService
 - SimulationService
 - RiskAnalyticsService
@@ -427,7 +438,7 @@ Pending
 Current Passing Tests
 
 ```
-50 Passed
+61 Passed
 0 Failed
 ```
 
@@ -547,14 +558,20 @@ Target
 
 ## Phase 5
 
-Portfolio Optimization
+Phase 5 — Portfolio Optimization
 
-- Mean-Variance Optimization
-- Efficient Frontier
-- Maximum Sharpe Portfolio
-- Minimum Variance Portfolio
+Implement
 
----
+• Optimization Financial Engine
+• Constraint Validation
+• Optimization Service
+• Optimization Schemas
+• Optimization API
+• Optimization Tests
+
+Target
+
+75+ Passing Tests
 
 ## Phase 6
 
@@ -598,3 +615,268 @@ Phase 4 establishes the complete statistical foundation required for:
 - Risk Analytics
 
 No refactoring of the Financial Engine should be required in future phases.
+
+# Phase 4
+
+## Completed
+
+### Financial Engine
+
+- Statistics package
+- Expected Annual Returns
+- Daily Covariance Matrix
+- Annualized Covariance Matrix
+- Correlation Matrix
+- Portfolio Volatility
+- Shared Statistics Validation
+
+### Service Layer
+
+- StatisticsService
+- Business Validation
+- MarketDataService orchestration
+
+### API
+
+- GET /statistics/returns
+- GET /statistics/covariance
+- GET /statistics/correlation
+- GET /statistics/volatility
+
+### Schemas
+
+- ExpectedReturnsResponse
+- CovarianceMatrixResponse
+- CorrelationMatrixResponse
+- PortfolioVolatilityResponse
+
+### Testing
+
+- Statistics Engine Tests
+- Statistics Service Tests
+- Statistics API Tests
+
+Status
+
+Completed
+
+
+## 05_PROJECT_STATE.md
+
+### Current Project Status
+
+**Project:** OptiVest — Production-Quality Portfolio Analytics Platform
+
+**Architecture:** Layered Modular Monolith
+
+**Current Phase:** Phase 5 (Financial Engine) Completed
+
+---
+
+# Completed Phases
+
+## Phase 0 — Foundation
+
+* FastAPI Project Structure
+* Configuration
+* Database
+* Authentication Infrastructure
+* Logging
+* Security
+* Session Management
+
+Status: ✅ Complete
+
+---
+
+## Phase 1 — Authentication
+
+* User Registration
+* User Login
+* JWT Authentication
+* Password Hashing
+* Authentication API
+* Authentication Tests
+
+Status: ✅ Complete
+
+---
+
+## Phase 2 — Portfolio CRUD
+
+* Portfolio Model
+* Portfolio Service
+* Portfolio API
+* CRUD Operations
+* Portfolio Tests
+
+Status: ✅ Complete
+
+---
+
+## Phase 3 — Market Data Foundation
+
+Financial Engine
+
+* Historical Market Data Engine
+* Daily Returns
+* Annualization Utilities
+* Market Data Validation
+
+Service Layer
+
+* MarketDataService
+
+API
+
+* Historical Prices
+* Daily Returns
+
+Testing
+
+* Financial Engine Tests
+* Service Tests
+* API Tests
+
+Status: ✅ Complete
+
+---
+
+## Phase 4 — Portfolio Statistics Foundation
+
+Financial Engine
+
+* Expected Annual Returns
+* Daily Covariance Matrix
+* Annualized Covariance Matrix
+* Correlation Matrix
+* Portfolio Volatility
+* Shared Statistics Validation
+
+Service Layer
+
+* StatisticsService
+
+API
+
+* Expected Returns
+* Covariance Matrix
+* Correlation Matrix
+* Portfolio Volatility
+
+Testing
+
+* Statistics Financial Engine Tests
+* Statistics Service Tests
+* Statistics API Tests
+
+Status: ✅ Complete
+
+---
+
+## Phase 5 — Portfolio Optimization (Financial Engine)
+
+Financial Engine
+
+* Optimization Validation
+* Shared CVXPY Utilities
+* Mean-Variance Optimization
+* Minimum Variance Portfolio
+* Maximum Sharpe Portfolio
+* Efficient Frontier Generation
+* Immutable EfficientFrontierPoint Domain Model
+
+Testing
+
+* Validation Tests
+* Mean-Variance Tests
+* Minimum Variance Tests
+* Maximum Sharpe Tests
+* Efficient Frontier Tests
+
+Status: ✅ Financial Engine Complete
+
+---
+
+# Current Test Status
+
+Authentication
+
+* Passed
+
+Portfolio
+
+* Passed
+
+Market Data
+
+* Passed
+
+Statistics
+
+* Passed
+
+Optimization Financial Engine
+
+* Passed
+
+Total Passing Tests
+
+**103 Passed**
+
+**0 Failed**
+
+---
+
+# Current Project Structure
+
+```
+app/
+
+├── api/
+├── core/
+├── database/
+├── financial_engines/
+│   ├── market_data/
+│   ├── statistics/
+│   └── optimization/
+│       ├── __init__.py
+│       ├── validation.py
+│       ├── _base.py
+│       ├── mean_variance.py
+│       ├── minimum_variance.py
+│       ├── maximum_sharpe.py
+│       └── efficient_frontier.py
+├── models/
+├── schemas/
+├── services/
+└── utils/
+
+tests/
+
+├── api/
+├── financial_engines/
+│   ├── market_data/
+│   ├── statistics/
+│   └── optimization/
+├── services/
+└── conftest.py
+```
+
+---
+
+# Next Phase
+
+Continue Phase 5
+
+Service Layer
+
+1. OptimizationService
+2. Service Tests
+3. Optimization Schemas
+4. Optimization API
+5. API Tests
+
+Target
+
+120+ Passing Tests
