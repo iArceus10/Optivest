@@ -1,205 +1,503 @@
-# OptiVest – Project State
+# 05_PROJECT_STATE.md
 
-Version: 1.3
+# OptiVest Project State
 
-Last Updated: 29 June 2026
+**Version:** 1.0
 
-Current Phase: **Phase 1.1 – Authentication Foundation (Authentication Core Completed)**
+**Project:** OptiVest – Portfolio Optimization & Risk Analytics Platform
+
+**Current Phase:** Phase 2 – Portfolio Domain Foundation (Ready to Begin)
+
+**Last Completed Phase:** Phase 1 – Authentication
+
+**Status:** Stable
 
 ---
 
-# Progress
+# 1. Executive Summary
 
-## Phase 0
+OptiVest is a production-quality fintech platform being developed for IIT campus placements.
 
-### Repository Foundation
+Primary goals:
 
-* [x] Repository structure established
-* [x] Backend folder structure
-* [x] Frontend folder structure
-* [x] Git repository initialized
-* [x] Project documentation established
+* Production-quality software engineering
+* Quantitative finance implementation
+* Interview-defensible architecture
+* Clean layered modular monolith
+* High code quality
+* Maintainability
+* Extensibility
 
-### Backend Foundation
+The project intentionally avoids unnecessary abstractions during Version 1 while maintaining production engineering practices.
 
-* [x] FastAPI project initialization
-* [x] Environment configuration using `pydantic-settings`
-* [x] Versioned API structure
-* [x] Centralized logging
-* [x] Lifespan events
-* [x] Public root endpoint
-* [x] Versioned root endpoint
-* [x] Health endpoint
-* [x] Swagger / OpenAPI documentation
-* [x] SQLAlchemy 2.x database infrastructure
-* [x] Database session management
-* [x] Declarative ORM base
+---
+
+# 2. Overall Roadmap
+
+## Phase 0 – Foundation
+
+Status
+
+✅ Complete
+
+Completed
+
+* Repository Foundation
+* FastAPI Initialization
+* Configuration Management
+* Structured Logging
+* API Routing
+* SQLAlchemy Integration
+* Alembic Configuration
+* Database Session Management
 
 ---
 
 ## Phase 1 – Authentication
 
-Status: **Nearly Complete**
+Status
+
+✅ Complete
 
 Completed
 
-* [x] Authentication dependencies installed
-* [x] JWT configuration
-* [x] SECRET_KEY configuration
-* [x] PostgreSQL connectivity verification
-* [x] SQLAlchemy verification
-* [x] User ORM model
-* [x] Native PostgreSQL UUID primary key
-* [x] Alembic initialization
-* [x] Alembic integration
-* [x] Initial migration generation
-* [x] Initial migration applied
-* [x] Migration validation
-* [x] Password hashing utilities (Passlib + bcrypt)
-* [x] Password verification
-* [x] JWT creation
-* [x] JWT verification
-* [x] Authentication security utilities
-* [x] Authentication request schemas
-* [x] Authentication response schemas
-* [x] Authentication service
-* [x] User registration API
-* [x] User login API
-* [x] Swagger validation
-* [x] End-to-end authentication validation
-* [x] Email normalization inside authentication service
-* [x] Transaction rollback handling during registration
-
-Remaining
-
-* [ ] Current user dependency (`get_current_user`)
-* [ ] OAuth2 Bearer authentication dependency
-* [ ] Protected endpoint (`GET /api/v1/auth/me`)
-* [ ] Authentication API tests
+* User ORM
+* User Migration
+* Registration
+* Login
+* Password Hashing (bcrypt)
+* JWT Authentication
+* OAuth2PasswordBearer
+* Current User Dependency
+* Protected Endpoint (/auth/me)
+* Security Tests
+* API Integration Tests
+* Shared Test Infrastructure
 
 ---
 
-## Phase 2
+## Phase 2 – Portfolio Management
 
-* [ ] Portfolio CRUD
+Status
 
-## Phase 3
-
-* [ ] Market Data Integration
-
-## Phase 4
-
-* [ ] Portfolio Dashboard
-
-## Phase 5
-
-* [ ] Portfolio Optimization
-
-## Phase 6
-
-* [ ] Monte Carlo Simulation
-
-## Phase 7
-
-* [ ] Risk Analytics
-
-## Phase 8
-
-* [ ] Frontend Development
-
-## Phase 9
-
-* [ ] Deployment
+⏳ Ready to Begin
 
 ---
 
-# Completed Since Previous Update
+## Future Phases
 
-## Authentication Core
+⏳ Market Data
 
-Completed
+⏳ Portfolio Analytics
 
-* Implemented centralized security utilities.
-* Added bcrypt password hashing.
-* Added password verification.
-* Added JWT creation and verification.
-* Added authentication request and response schemas.
-* Implemented authentication business service.
-* Implemented user registration endpoint.
-* Implemented user login endpoint.
-* Added email normalization.
-* Added database transaction rollback protection.
-* Validated complete authentication flow using Swagger.
+⏳ Optimization Engine
+
+⏳ Risk Analytics
+
+⏳ Monte Carlo Simulation
+
+⏳ Reporting
+
+⏳ Frontend
 
 ---
 
-# Validation Status
+# 3. Repository Status
 
-Successfully verified
+backend/
 
-* FastAPI startup
-* PostgreSQL connectivity
-* SQLAlchemy session management
-* Alembic migrations
-* User registration
-* Duplicate registration detection
-* User login
-* Invalid credential handling
-* JWT generation
-* JWT decoding
-* Password hashing
+app/
+
+api/
+
+dependencies/
+
+✔ auth.py
+
+v1/
+
+✔ auth.py
+
+✔ health.py
+
+✔ root.py
+
+core/
+
+✔ config.py
+
+✔ logging.py
+
+✔ security.py
+
+database/
+
+✔ base.py
+
+✔ session.py
+
+models/
+
+✔ user.py
+
+⬜ portfolio.py
+
+schemas/
+
+✔ auth.py
+
+⬜ portfolio.py
+
+services/
+
+✔ auth_service.py
+
+⬜ portfolio_service.py
+
+financial_engines/
+
+⬜ Empty
+
+tests/
+
+✔ conftest.py
+
+✔ test_security.py
+
+✔ test_auth_api.py
+
+---
+
+# 4. Authentication Module
+
+Status
+
+✅ Production Ready
+
+Features
+
+* Password hashing using bcrypt
 * Password verification
-* Swagger documentation
+* JWT Access Tokens
+* JWT Validation
+* Email normalization
+* Transaction rollback
+* OAuth2 Bearer Authentication
+* Protected Routes
+
+Authentication Flow
+
+Register
+
+↓
+
+Hash Password
+
+↓
+
+Store User
+
+↓
+
+Login
+
+↓
+
+Verify Password
+
+↓
+
+Generate JWT
+
+↓
+
+Bearer Token
+
+↓
+
+Protected API
 
 ---
 
-# Known Issues
+# 5. API Inventory
 
-None.
+Health
+
+GET /health
+
+Status
+
+✅
+
+Root
+
+GET /
+
+Status
+
+✅
+
+Authentication
+
+POST /api/v1/auth/register
+
+Status
+
+✅
+
+POST /api/v1/auth/login
+
+Status
+
+✅
+
+GET /api/v1/auth/me
+
+Status
+
+✅
+
+Portfolio
+
+Not Started
 
 ---
 
-# Technical Debt
+# 6. Database Status
 
-Minor
+Current Tables
 
-Authentication currently uses `ValueError` inside the service layer, which is translated into HTTP responses by the API layer. This is acceptable for Version 1 and intentionally avoids introducing unnecessary custom exception abstractions.
+users
+
+Fields
+
+* id
+* email
+* full_name
+* hashed_password
+* is_active
+* created_at
+* updated_at
+
+Pending Tables
+
+portfolio
+
+portfolio_holdings
+
+assets
+
+transactions
+
+market_prices
 
 ---
 
-# Next Objective
+# 7. Testing Status
 
-Complete the remaining authentication components.
+Infrastructure
 
-Immediate deliverables
+✔ pytest configured
 
-1. OAuth2PasswordBearer configuration
-2. `get_current_user` dependency
-3. Protected endpoint (`GET /api/v1/auth/me`)
-4. Authentication tests
+✔ conftest.py
 
-After completing these tasks, Phase 1 (Authentication) will be considered complete and development will continue with Phase 2 – Portfolio CRUD.
+✔ isolated SQLite test database
+
+✔ dependency overrides
+
+Security Tests
+
+✔ Password Hash
+
+✔ Password Verify
+
+✔ JWT Create
+
+✔ JWT Decode
+
+Result
+
+5 / 5 Passing
+
+Authentication Tests
+
+✔ Register
+
+✔ Duplicate Register
+
+✔ Login
+
+✔ Wrong Password
+
+✔ Protected Route
+
+✔ Invalid Token
+
+Result
+
+6 / 6 Passing
+
+Current Total
+
+11 Passing Tests
 
 ---
 
-# Recommended Git Commit
+# 8. Engineering Decisions
 
-```
-feat(auth): implement authentication service and authentication APIs
-```
+Decision 1
+
+Layered Modular Monolith
+
+Status
+
+Accepted
+
+Decision 2
+
+No Repository Pattern
+
+Status
+
+Accepted
+
+Decision 3
+
+Business Logic inside Services
+
+Status
+
+Accepted
+
+Decision 4
+
+JWT stores immutable User UUID
+
+Status
+
+Accepted
+
+Decision 5
+
+Authentication dependency implemented using OAuth2PasswordBearer
+
+Status
+
+Accepted
+
+Decision 6
+
+Shared pytest fixtures via conftest.py
+
+Status
+
+Accepted
+
+Decision 7
+
+SQLite isolated test database for API tests
+
+Status
+
+Accepted
 
 ---
 
-# Notes
+# 9. Known Limitations
 
-The authentication module is now functionally complete from a user perspective.
+Not Implemented
 
-Users can successfully:
+* Refresh Tokens
+* Role-Based Authorization
+* Password Reset
+* Email Verification
+* Multi-Factor Authentication
 
-* Register
-* Log in
-* Receive JWT access tokens
+Reason
 
-The remaining work focuses on securing future endpoints using JWT authentication.
+Deferred to Version 2.
 
-The project continues to follow the Layered Modular Monolith architecture with no unnecessary abstractions, repositories, factories, or placeholder code.
+---
+
+# 10. Current Code Quality
+
+Architecture
+
+★★★★★
+
+Readability
+
+★★★★★
+
+Testing
+
+★★★★★
+
+Maintainability
+
+★★★★★
+
+Interview Readiness
+
+★★★★★
+
+---
+
+# 11. Next Phase
+
+Phase 2
+
+Portfolio Domain Foundation
+
+To Implement
+
+* Portfolio ORM
+* Portfolio Schemas
+* Portfolio Service
+* Portfolio CRUD APIs
+* Alembic Migration
+* Portfolio Tests
+
+No optimization logic.
+
+No financial calculations.
+
+No market data.
+
+No analytics.
+
+Only Portfolio CRUD.
+
+---
+
+# 12. Development Checklist
+
+Completed
+
+✅ Foundation
+
+✅ Authentication
+
+Pending
+
+⬜ Portfolio CRUD
+
+⬜ Asset Model
+
+⬜ Holdings
+
+⬜ Portfolio Analytics
+
+⬜ Efficient Frontier
+
+⬜ Risk Metrics
+
+⬜ Monte Carlo
+
+⬜ Reporting
+
+⬜ Frontend
+
+---
+
+END OF STATE

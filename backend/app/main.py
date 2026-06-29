@@ -28,6 +28,7 @@ app = FastAPI(
 # Register all API routes
 app.include_router(api_router)
 
+
 if __name__ == "__main__":
     import uvicorn
 
@@ -37,12 +38,3 @@ if __name__ == "__main__":
         port=8000,
         reload=True,
     )
-
-@app.get("/", tags=["Root"])
-async def root() -> dict[str, str]:
-    return {
-        "message": "Welcome to OptiVest API",
-        "docs": "/docs",
-        "api": "/api/v1",
-        "version": settings.app_version,
-    }
