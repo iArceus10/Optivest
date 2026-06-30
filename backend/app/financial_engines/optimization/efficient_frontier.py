@@ -7,8 +7,6 @@ achievable expected returns under long-only constraints.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import cvxpy as cp
 import numpy as np
 import pandas as pd
@@ -19,21 +17,11 @@ from ._base import (
     create_weight_variable,
     solve_problem,
 )
+from .models import EfficientFrontierPoint
 from .validation import validate_optimization_inputs
 
 
 DEFAULT_FRONTIER_POINTS = 50
-
-
-@dataclass(frozen=True)
-class EfficientFrontierPoint:
-    """
-    Represents one portfolio on the Efficient Frontier.
-    """
-
-    expected_return: float
-    volatility: float
-    weights: pd.Series
 
 
 def _compute_frontier_point(

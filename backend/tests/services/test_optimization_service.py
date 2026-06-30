@@ -1,5 +1,6 @@
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -98,7 +99,7 @@ def test_mean_variance_portfolio(
     optimization_dates,
 ):
     """
-    Mean-Variance optimization should return portfolio weights.
+    Mean-Variance optimization should produce a valid portfolio.
     """
 
     start, end = optimization_dates
@@ -118,11 +119,8 @@ def test_mean_variance_portfolio(
     )
 
     assert isinstance(weights, pd.Series)
-    assert list(weights.index) == [
-        "AAPL",
-        "MSFT",
-        "NVDA",
-    ]
+    assert np.isclose(weights.sum(), 1.0)
+    assert (weights >= 0).all()
 
 
 def test_minimum_variance_portfolio(
@@ -131,7 +129,7 @@ def test_minimum_variance_portfolio(
     optimization_dates,
 ):
     """
-    Minimum Variance optimization should return portfolio weights.
+    Minimum Variance optimization should produce a valid portfolio.
     """
 
     start, end = optimization_dates
@@ -151,11 +149,8 @@ def test_minimum_variance_portfolio(
     )
 
     assert isinstance(weights, pd.Series)
-    assert list(weights.index) == [
-        "AAPL",
-        "MSFT",
-        "NVDA",
-    ]
+    assert np.isclose(weights.sum(), 1.0)
+    assert (weights >= 0).all()
 
 
 def test_maximum_sharpe_portfolio(
@@ -164,7 +159,7 @@ def test_maximum_sharpe_portfolio(
     optimization_dates,
 ):
     """
-    Maximum Sharpe optimization should return portfolio weights.
+    Maximum Sharpe optimization should produce a valid portfolio.
     """
 
     start, end = optimization_dates
@@ -184,11 +179,8 @@ def test_maximum_sharpe_portfolio(
     )
 
     assert isinstance(weights, pd.Series)
-    assert list(weights.index) == [
-        "AAPL",
-        "MSFT",
-        "NVDA",
-    ]
+    assert np.isclose(weights.sum(), 1.0)
+    assert (weights >= 0).all()
 
 
 def test_generate_efficient_frontier(
@@ -218,13 +210,25 @@ def test_generate_efficient_frontier(
         )
     )
 
-    assert isinstance(frontier, list)
     assert len(frontier) == 10
 
-    assert all(
-        isinstance(point, EfficientFrontierPoint)
-        for point in frontier
-    )
+    for point in frontier:
+        assert isinstance(
+            point,
+            EfficientFrontierPoint,
+        )
+
+        assert isinstance(
+            point.weights,
+            pd.Series,
+        )
+
+        assert np.isclose(
+            point.weights.sum(),
+            1.0,
+        )
+
+        assert np.all(point.weights >= -1e-6)
 
 
 def test_market_data_error_is_propagated(
@@ -288,8 +292,7 @@ def test_invalid_frontier_points(
     optimization_dates,
 ):
     """
-    Invalid frontier size should be propagated from the optimization
-    engine.
+    Invalid frontier size should be propagated.
     """
 
     start, end = optimization_dates

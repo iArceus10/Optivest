@@ -644,6 +644,45 @@ Encapsulates covariance computation.
 Avoids duplication across services.
 Provides a simpler and more cohesive public API for future Optimization and Monte Carlo modules.
 
+Decision XX
+Domain Model Extraction
+
+Extracted
+
+EfficientFrontierPoint
+
+from
+
+efficient_frontier.py
+
+into
+
+models.py
+
+Reason
+
+Separate immutable domain models from optimization algorithms.
+
+No behavioral changes.
+
+Decision XX
+
+Optimization Financial Engine Frozen
+
+Financial Engine is frozen after
+
+109 passing tests
+
+Future work should occur in
+
+API
+Tests
+Documentation
+
+unless a correctness bug is discovered.
+
+
+
 # Current Accepted Architecture
 
 ```

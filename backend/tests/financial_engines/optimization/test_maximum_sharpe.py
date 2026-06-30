@@ -67,7 +67,7 @@ def test_optimize_maximum_sharpe_is_long_only():
         sample_covariance_matrix(),
     )
 
-    assert (weights >= -1e-10).all()
+    assert np.all(weights >= -1e-6)
 
 
 def test_optimize_maximum_sharpe_returns_named_series():

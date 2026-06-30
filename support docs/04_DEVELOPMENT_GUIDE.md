@@ -427,3 +427,28 @@ Next Phase
 
 Phase 5 — Portfolio Optimization
 ```
+Phase 5 Status
+
+Completed
+
+✓ Financial Engine
+✓ Optimization Service
+✓ Optimization Service Tests
+✓ Optimization Schemas
+
+Repository Status
+
+109 tests passing.
+
+Financial Engine frozen.
+
+Added
+
+app/financial_engines/optimization/models.py
+
+EfficientFrontierPoint relocated from
+efficient_frontier.py
+to
+models.py
+
+No financial logic changed.

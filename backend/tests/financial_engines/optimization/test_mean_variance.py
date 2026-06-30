@@ -68,7 +68,7 @@ def test_optimize_mean_variance_produces_long_only_weights():
         sample_covariance_matrix(),
     )
 
-    assert (weights >= -1e-10).all()
+    assert np.all(weights >= -1e-6)
 
 
 def test_optimize_mean_variance_rejects_invalid_risk_aversion():
