@@ -7,6 +7,13 @@ from app.api.v1.portfolio import router as portfolio_router
 from app.api.v1.root import router as root_router
 from app.api.v1.statistics import router as statistics_router
 
+from app.api.v1.optimization import (
+    router as optimization_router,
+)
+from app.api.v1.simulation import (
+    router as simulation_router,
+)
+
 api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(root_router)
@@ -15,3 +22,9 @@ api_router.include_router(auth_router)
 api_router.include_router(portfolio_router)
 api_router.include_router(market_data_router)
 api_router.include_router(statistics_router)
+api_router.include_router(
+    optimization_router,
+)
+api_router.include_router(
+    simulation_router,
+)

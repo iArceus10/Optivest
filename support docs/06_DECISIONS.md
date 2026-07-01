@@ -1,905 +1,503 @@
-# 06_DECISIONS.md
+# OptiVest
 
-# OptiVest Engineering Decisions
+# Engineering Decisions
 
-**Version:** 1.1
+**Document Version:** 1.0
 
-**Last Updated:** 29 June 2026
+**Project Version:** Version 1
+
+**Repository Status:** Phase 5 Complete
+
+**Current Test Status:** 117 Passing
+
+**Last Updated:** After Phase 5 Completion
 
 ---
 
 # Purpose
 
-This document records the architectural and engineering decisions accepted throughout the development of OptiVest.
+This document records the architectural and engineering decisions that
+govern the OptiVest repository.
 
-These decisions are considered part of the project's architecture and should not be changed unless a compelling engineering reason exists.
+Unlike the Project Specification, which defines *what* the project
+should accomplish, or the Software Architecture document, which defines
+*how* the repository is organized, this document explains **why**
+important engineering decisions were made.
+
+Each decision represents a deliberate design choice and should be
+preserved unless a compelling technical reason exists to change it.
 
 ---
 
-# Decision 001
+# Decision 001 — Layered Modular Monolith
 
-## Architecture
-
-**Accepted**
-
-OptiVest follows a **Layered Modular Monolith Architecture**.
-
-```
-FastAPI
-
-↓
-
-API Layer
-
-↓
-
-Service Layer
-
-↓
-
-Financial Engines
-
-↓
-
-Database / External APIs
-```
+The repository follows a Layered Modular Monolith architecture.
 
 ### Reason
 
-- Simple deployment
+Provides:
+
 - Low operational complexity
 - High maintainability
-- Easy debugging
-- Future migration to microservices remains possible
+- Excellent testability
+- Clear separation of concerns
+
+without introducing unnecessary distributed-system complexity.
 
 ---
 
-# Decision 002
+# Decision 002 — Financial Engines are Framework Independent
 
-## Business Logic Placement
-
-Business logic belongs exclusively inside the **Service Layer**.
-
-Services own
-
-- workflow
-- orchestration
-- validation
-- business rules
-- database interaction
-
-Business logic must never exist inside API routes.
-
----
-
-# Decision 003
-
-## Mathematical Logic Placement
-
-All quantitative finance and statistical algorithms belong exclusively inside **Financial Engines**.
-
-Financial Engines must never depend on
+Financial Engines never depend on:
 
 - FastAPI
 - SQLAlchemy
 - Pydantic
-- Database Models
+- JWT
+- ORM Models
 
-Financial Engines remain deterministic computational libraries.
+### Reason
 
----
-
-# Decision 004
-
-## Framework Independence
-
-Financial Engines depend only upon
-
-- Python
-- NumPy
-- Pandas
-
-They must remain reusable in
-
-- CLI tools
-- notebooks
-- batch jobs
-- future services
+Mathematical computation should remain reusable, deterministic and easily
+testable.
 
 ---
 
-# Decision 005
+# Decision 003 — Business Logic Belongs in Services
 
-## API Responsibilities
+Application workflows belong exclusively to the Service layer.
 
-API routes are responsible only for
+### Reason
 
-- request parsing
+Services orchestrate application behaviour while Financial Engines
+perform mathematical computation.
+
+---
+
+# Decision 004 — Thin REST APIs
+
+REST endpoints perform only:
+
+- request validation
 - authentication
-- calling services
 - serialization
-- HTTP exception translation
+- exception translation
 
-APIs never contain business logic or mathematical calculations.
+### Reason
 
----
-
-# Decision 006
-
-## Service Responsibilities
-
-Services coordinate
-
-- workflow
-- validation
-- database interaction
-- Financial Engine invocation
-
-Services never perform financial mathematics.
+Keeps transport logic separate from business logic.
 
 ---
 
-# Decision 007
+# Decision 005 — Financial Engines Own Mathematics
 
-## Version 1 Simplicity
+Every financial algorithm belongs inside Financial Engines.
 
-Version 1 intentionally excludes
+Examples:
+
+- Statistics
+- Optimization
+- Future Monte Carlo
+- Future Risk Analytics
+
+### Reason
+
+Centralizes mathematical logic and prevents duplication.
+
+---
+
+# Decision 006 — Validation at Multiple Layers
+
+Validation occurs where responsibility exists.
+
+API
+
+- Request validation
+
+Service
+
+- Business validation
+
+Financial Engine
+
+- Numerical validation
+
+### Reason
+
+Each architectural layer validates only what it owns.
+
+---
+
+# Decision 007 — Immutable Domain Models
+
+Optimization results are represented using immutable domain models.
+
+Examples:
+
+- OptimizedPortfolio
+- EfficientFrontierPoint
+
+### Reason
+
+Immutable objects reduce accidental modification and improve reasoning.
+
+---
+
+# Decision 008 — Deterministic Computation
+
+Financial Engines must produce identical outputs for identical inputs.
+
+Randomized algorithms must expose configurable seeds.
+
+### Reason
+
+Improves reproducibility and testing.
+
+---
+
+# Decision 009 — Production-Quality Testing
+
+Every feature includes:
+
+- Financial Engine tests
+- Service tests
+- API tests
+
+### Reason
+
+Different architectural layers require different validation strategies.
+
+---
+
+# Decision 010 — Documentation Driven Development
+
+Repository documentation evolves together with implementation.
+
+### Reason
+
+Documentation should always describe the current repository rather than
+historical development.
+
+---
+
+# Decision 011 — Version 1 Minimalism
+
+Version 1 intentionally avoids unnecessary files.
+
+Every file must directly implement repository functionality.
+
+Placeholder modules are not permitted.
+
+### Reason
+
+Smaller repositories are easier to maintain and defend during technical
+interviews.
+
+---
+
+# Decision 012 — Avoid Premature Abstraction
+
+Enterprise abstractions are introduced only when justified.
+
+Avoid:
 
 - Repository Pattern
 - Unit of Work
-- Interfaces
-- Managers
+- Generic Managers
 - Generic CRUD
-- Generic Services
-- Factory Pattern
+- Service Factories
 
-The project follows the **Rule of Three** before introducing abstractions.
+### Reason
 
----
-
-# Decision 008
-
-## Internal Financial Representation
-
-Financial Engines communicate using
-
-- Pandas DataFrames
-- Pandas Series
-- NumPy arrays
-
-These remain internal implementation details.
-
-API responses never expose them directly.
+Version 1 prioritizes simplicity over speculative extensibility.
 
 ---
 
-# Decision 009
+# Decision 013 — Prefer Extending Existing Components
 
-## Serialization
+Before creating a new file, evaluate whether the functionality belongs
+inside an existing module.
 
-Serialization from
+### Reason
 
-```
-DataFrame / Series
-
-↓
-
-JSON
-```
-
-occurs only inside the API layer.
-
-This preserves framework independence of lower layers.
+Reduces repository growth and maintenance cost.
 
 ---
 
-# Decision 010
+# Decision 014 — Strong Typing
 
-## Market Data Provider
+Public interfaces use explicit type hints wherever practical.
 
-Version 1 uses
+### Reason
 
-Yahoo Finance (`yfinance`)
-
-Reason
-
-- free
-- reliable
-- educational
-- widely adopted
-
-Future providers should be replaceable without changing Services or Financial Engines.
+Improves readability, tooling support and maintainability.
 
 ---
 
-# Decision 011
+# Decision 015 — Repository Growth is Controlled
 
-## Historical Prices
+Repository size should grow only through justified functionality.
 
-Adjusted Close prices are used for all return calculations.
+No file should exist solely for future possibilities.
 
-Reason
+### Reason
 
-Adjusted Close correctly incorporates
-
-- stock splits
-- dividends
-- corporate actions
+Maintains a clean and understandable codebase.
 
 ---
 
-# Decision 012
+# Decision 016 — Market Data Separation
 
-## Multi-Asset API
+Market data retrieval belongs in Services.
 
-Market Data endpoints accept multiple ticker symbols.
+Financial Engines only process numerical datasets.
 
-Example
+### Reason
 
-```
-AAPL,MSFT,NVDA
-```
-
-Reason
-
-Portfolio analytics naturally operate on multiple assets simultaneously.
+Separates infrastructure from computation.
 
 ---
 
-# Decision 013
+# Decision 017 — Statistics Engine Separation
 
-## Validation Strategy
+Statistics calculations remain independent of Optimization.
 
-Validation responsibilities are separated.
+### Reason
 
-Financial Engines
-
-- numerical validation
-- mathematical assumptions
-
-Services
-
-- business validation
-- dates
-- ticker normalization
-
-API
-
-- request validation
-- HTTP responses
+Statistics are reusable by multiple future Financial Engines.
 
 ---
 
-# Decision 014
+# Decision 018 — Shared Optimization Utilities
 
-## Error Handling
+Common optimization logic is centralized into shared helper modules.
 
-Financial Engines
+### Reason
 
-Raise Python exceptions.
-
-Services
-
-Raise Python exceptions.
-
-API
-
-Translates exceptions into HTTP responses.
-
-Framework-specific exceptions never propagate into lower layers.
+Avoids duplicated CVXPY code while preserving readability.
 
 ---
 
-# Decision 015
+# Decision 019 — Optimization Models
 
-## Testing Philosophy
+Optimization domain models reside in a dedicated `models.py` module.
 
-Each architectural layer is tested independently.
+### Reason
 
-Financial Engines
-
-- mathematical correctness
-
-Services
-
-- orchestration
-- validation
-
-API
-
-- HTTP behavior
-- serialization
-- status codes
+Separates reusable domain objects from optimization algorithms.
 
 ---
 
-# Decision 016
+# Decision 020 — Efficient Frontier Domain Model
 
-## External Dependencies
+Each frontier portfolio is represented by an immutable
+`EfficientFrontierPoint`.
 
-External APIs are always mocked during testing.
+### Reason
 
-Automated tests never perform network requests.
-
----
-
-# Decision 017
-
-## Development Workflow
-
-Every feature follows
-
-```
-Design
-
-↓
-
-Implementation
-
-↓
-
-python -m compileall app
-
-↓
-
-Runtime Validation
-
-↓
-
-pytest
-
-↓
-
-Documentation Update
-
-↓
-
-Git Commit
-```
+Provides a stable interface between Financial Engines and Services.
 
 ---
 
-# Decision 018
+# Decision 021 — Optimization Service Responsibilities
 
-## Dependency Installation
+OptimizationService performs:
 
-Always install packages using
+- Market data retrieval
+- Input preparation
+- Financial Engine orchestration
 
-```
-python -m pip install ...
-```
+It performs no mathematical optimization.
 
-Never rely on
+### Reason
 
-```
-pip install ...
-```
-
-to avoid virtual environment ambiguity.
+Preserves clean separation of concerns.
 
 ---
 
-# Decision 019
+# Decision 022 — Optimization API Responsibilities
 
-## Project Philosophy
+Optimization endpoints perform only:
 
-Production quality takes priority over development speed.
+- Request validation
+- Service delegation
+- Response serialization
+- Exception translation
 
-The repository should be suitable for
+### Reason
 
-- IIT placements
-- Software Engineering interviews
-- Quantitative Finance interviews
-- long-term maintainability
-
----
-
-# Decision 020
-
-## Statistics Package
-
-A dedicated
-
-```
-financial_engines/statistics/
-```
-
-package has been introduced.
-
-Implemented modules
-
-- expected_returns.py
-- covariance.py
-- correlation.py
-- volatility.py
-- validation.py
-
-Reason
-
-Separates statistical algorithms from market data retrieval and prepares the mathematical foundation for portfolio optimization.
+REST APIs should remain transport layers.
 
 ---
 
-# Decision 021
+# Decision 023 — Optimization Serialization
 
-## Shared Statistics Validation
+Optimization responses intentionally expose only portfolio allocations.
 
-Return matrix validation has been centralized into
+The API does not compute additional financial metrics.
 
-```
-statistics/validation.py
-```
+### Reason
 
-Reason
+Services currently return optimized weights only.
 
-Validation logic appeared in three statistical engines.
-
-The abstraction was introduced only after satisfying the Rule of Three.
+The API must never invent financial calculations.
 
 ---
 
-# Decision 022
+# Decision 024 — Efficient Frontier Serialization
 
-## Expected Returns
+Efficient Frontier responses are serialized from immutable domain models.
 
-Expected return is computed as
+### Reason
 
-```
-Mean Daily Return × 252
-```
-
-Reason
-
-This follows the standard historical annualization approach used in portfolio analytics.
-
-The engine returns a **Series**, not a scalar, allowing direct use in optimization algorithms.
+Separates domain representation from transport representation.
 
 ---
 
-# Decision 023
+# Decision 025 — API Testing Strategy
 
-## Covariance Matrix
+API tests mock Services.
 
-The covariance engine provides
+They do not execute Financial Engines.
 
-- daily covariance
-- annualized covariance
+### Reason
 
-Reason
-
-Portfolio optimization operates directly on the covariance matrix.
-
-Annualization occurs inside the Financial Engine to avoid duplication elsewhere.
+API tests validate HTTP behaviour rather than mathematical correctness.
 
 ---
 
-# Decision 024
+# Decision 026 — Service Testing Strategy
 
-## Correlation Matrix
+Service tests verify orchestration.
 
-Correlation is implemented independently from covariance.
+External dependencies should be mocked.
 
-Reason
+### Reason
 
-Although optimization depends on covariance, correlation is essential for
-
-- diversification analysis
-- visualization
-- portfolio diagnostics
+Business workflow testing should remain isolated from infrastructure.
 
 ---
 
-# Decision 025
+# Decision 027 — Financial Engine Testing Strategy
 
-## Portfolio Volatility
+Financial Engine tests verify:
 
-Portfolio volatility is calculated using
+- Mathematical correctness
+- Numerical stability
+- Validation
+- Edge cases
 
-```
-σ = √(wᵀΣw)
-```
+### Reason
 
-where
-
-- w = portfolio weights
-- Σ = annualized covariance matrix
-
-Reason
-
-This is the standard Modern Portfolio Theory formulation.
+Mathematical correctness belongs exclusively to Financial Engine tests.
 
 ---
 
-# Decision 026
+# Decision 028 — Frozen Financial Engines
 
-## Numerical Stability
+Completed Financial Engines are considered stable.
 
-Portfolio variance is clamped to zero when extremely small negative values arise from floating-point precision.
+Changes require:
 
-Example
+- correctness bug
+- numerical stability issue
+- verified implementation defect
 
-```
--2e-16
-```
+### Reason
 
-↓
-
-```
-0
-```
-
-Reason
-
-Prevents invalid square-root operations while still rejecting genuinely invalid covariance matrices.
+Protects validated mathematical implementations.
 
 ---
 
-# Decision 027
+# Decision 029 — Phase Completion Policy
 
-## Weight Validation
+A phase is complete only after:
 
-Portfolio weight validation currently remains inside
+- compile succeeds
+- relevant tests pass
+- full test suite passes
+- documentation updated
 
-```
-volatility.py
-```
+### Reason
 
-Reason
-
-Only one engine currently requires this validation.
-
-A shared helper will not be introduced until the Rule of Three is satisfied during the optimization phase.
+Prevents incomplete feature delivery.
 
 ---
 
-# Decision 028
+# Decision 030 — Documentation Consolidation
 
-## Statistics Engine Output Types
+Repository documentation should be periodically rewritten rather than
+continuously appended.
 
-The Statistics Engine returns
+### Reason
 
-Expected Returns
-
-→ Pandas Series
-
-Covariance
-
-→ Pandas DataFrame
-
-Correlation
-
-→ Pandas DataFrame
-
-Volatility
-
-→ float
-
-Reason
-
-Each output naturally matches its mathematical representation while remaining easy for the Service Layer to consume.
+Prevents duplicated history and outdated implementation notes.
 
 ---
 
-# Decision 029
+# Decision 031 — Repository Quality over Feature Count
 
-## Financial Engine Completion Order
+Engineering quality is prioritized over the number of implemented
+features.
 
-Financial Engines are implemented before Services.
+### Reason
 
-Services before APIs.
-
-APIs before integration tests.
-
-Reason
-
-This minimizes debugging complexity and ensures higher layers depend on stable lower layers.
+Maintainability and correctness provide greater long-term value than
+rapid feature expansion.
 
 ---
 
-Decision 030
-Statistics Service
+# Decision 032 — Interview Defensibility
 
-StatisticsService is responsible only for orchestration.
+Every architectural decision should be explainable during technical
+interviews.
 
-Responsibilities
+### Reason
 
-Retrieve daily returns
-Invoke Statistics Financial Engine
-Perform business validation
-
-StatisticsService never performs mathematical calculations.
-
-Reason
-
-Maintains strict separation between orchestration and quantitative finance algorithms.
-
-Decision 031
-Statistics Serialization
-
-Statistics Financial Engines communicate internally using
-
-Pandas DataFrames
-Pandas Series
-
-Serialization into JSON occurs exclusively inside the API layer using dedicated response schemas.
-
-Reason
-
-Preserves framework independence of Financial Engines while exposing stable API contracts.
-
-Decision 032
-Portfolio Volatility Engine Interface
-
-The Portfolio Volatility engine accepts
-
-Daily Returns
-
-rather than a covariance matrix.
-
-The engine internally computes the annualized covariance matrix before calculating volatility.
-
-Reason
-
-Encapsulates covariance computation.
-Avoids duplication across services.
-Provides a simpler and more cohesive public API for future Optimization and Monte Carlo modules.
-
-Decision XX
-Domain Model Extraction
-
-Extracted
-
-EfficientFrontierPoint
-
-from
-
-efficient_frontier.py
-
-into
-
-models.py
-
-Reason
-
-Separate immutable domain models from optimization algorithms.
-
-No behavioral changes.
-
-Decision XX
-
-Optimization Financial Engine Frozen
-
-Financial Engine is frozen after
-
-109 passing tests
-
-Future work should occur in
-
-API
-Tests
-Documentation
-
-unless a correctness bug is discovered.
-
-
-
-# Current Accepted Architecture
-
-```
-FastAPI
-
-↓
-
-API Layer
-
-↓
-
-Service Layer
-
-↓
-
-Financial Engines
-
-↓
-
-Database / External APIs
-```
-
-No accepted decision currently violates this architecture.
+The repository is intended to demonstrate engineering judgement in
+addition to implementation ability.
 
 ---
 
-# Future Reserved Decisions
+# Future Decisions
 
-The following phases will introduce additional engineering decisions.
-
-Phase 5
-
-- Optimization Engine
-- Efficient Frontier
-- CVXPY integration
-
-Phase 6
+Future phases will extend this document with additional decisions for:
 
 - Monte Carlo Simulation
-- Random Portfolio Generation
+- Risk Analytics
+- Portfolio Health
+- React Frontend
+- Production Deployment
 
-Phase 7
-
-- Sharpe Ratio
-- Sortino Ratio
-- VaR
-- CVaR
-- Maximum Drawdown
-
-Phase 8
-
-- Backtesting
-- Benchmark Comparison
-
-Future decisions should extend this document without modifying previously accepted architecture unless absolutely necessary.
-
-## 06_DECISIONS.md
-
-# Phase 5 Decisions
-
-## Optimization Package Introduced
-
-A dedicated optimization package was introduced under the Financial Engine.
-
-```
-financial_engines/
-    optimization/
-```
-
-This isolates portfolio optimization from market data and statistics while preserving framework independence.
+New decisions should be appended rather than modifying historical
+entries unless a previous decision has become technically incorrect.
 
 ---
 
-## Shared Optimization Infrastructure
+# Summary
 
-A private `_base.py` module centralizes:
+The decisions recorded in this document define the engineering identity
+of OptiVest.
 
-* CVXPY variable creation
-* Constraint creation
-* Optimization solving
-* Numerical cleanup
+They ensure that future development remains consistent with the
+repository's architectural principles, coding philosophy, and quality
+standards.
 
-This avoids duplicated optimization code across multiple optimizers.
-
----
-
-## Constraint Composition
-
-Constraints are now composed rather than hardcoded.
-
-Separate helpers exist for:
-
-* Fully Invested
-* Long Only
-
-This allows different optimizers to reuse only the constraints they require.
+Any significant deviation from these decisions should be documented and
+justified before implementation.
 
 ---
 
-## Framework Independence
+**End of Document**
 
-Optimization engines remain completely independent of:
+**Document:** 06_DECISIONS.md
 
-* FastAPI
-* SQLAlchemy
-* Pydantic
+**Version:** 1.0
 
-They operate purely on NumPy, Pandas, and CVXPY objects.
+**Repository Status:** Phase 5 Complete
 
----
+**Current Test Status:** 117 Passing
 
-## Maximum Sharpe Formulation
+**Engineering Decisions:** 32
 
-Maximum Sharpe is implemented using a convex reformulation rather than direct fractional optimization.
-
-Reasons:
-
-* DCP compliant
-* Numerically stable
-* Industry standard
-* Compatible with CVXPY
-
----
-
-## Efficient Frontier Domain Model
-
-Efficient Frontier returns immutable domain objects:
-
-```
-EfficientFrontierPoint
-```
-
-instead of dictionaries.
-
-Reasons:
-
-* Strong typing
-* Better readability
-* Easier future extension
-* Cleaner service layer
-
----
-
-## Efficient Frontier Implementation
-
-Efficient Frontier generation uses:
-
-* Internal helper for a single frontier point
-* Configurable frontier size
-* Numerical safeguards
-* Non-decreasing target returns
-
----
-
-## Solver Selection
-
-Solver selection is delegated to CVXPY.
-
-The project intentionally uses:
-
-```python
-problem.solve()
-```
-
-instead of forcing a specific solver.
-
-Reason:
-
-The optimization package now contains both:
-
-* Quadratic Programs (QP)
-* Quadratically Constrained Programs (QCQP)
-
-Automatic solver selection correctly dispatches to an appropriate solver.
-
----
-
-## Testing Philosophy
-
-Optimization tests validate mathematical invariants rather than exact numerical solutions.
-
-Tests verify:
-
-* Asset ordering
-* Long-only constraints
-* Fully invested portfolios
-* Deterministic behaviour
-* Numerical validity
-
-This avoids brittle solver-specific tests while ensuring mathematical correctness.
-
----
-
-## Current Architecture
-
-The layered architecture remains unchanged.
-
-```
-API
-
-↓
-
-Services
-
-↓
-
-Financial Engines
-
-↓
-
-Database
-```
-
-Financial Engines continue to contain all quantitative finance logic.
-
-Services remain orchestration and business logic only.
-
-APIs remain HTTP-only.
-
-This separation will continue through the remaining phases.
+**Next Planned Phase:** Phase 6 – Monte Carlo Simulation

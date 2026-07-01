@@ -1,882 +1,710 @@
-# 05_PROJECT_STATE.md
+# OptiVest
 
-# OptiVest Project State
+# Project State
 
-**Last Updated:** 29 June 2026
+**Document Version:** 1.0
+
+**Project Version:** Version 1
+
+**Repository Status:** Phase 5 Complete
+
+**Current Phase:** Phase 5 – Portfolio Optimization
+
+**Current Test Status:** 117 Passing
+
+**Architecture:** Layered Modular Monolith
+
+**Last Updated:** After Phase 5 Completion
 
 ---
 
-# Project Overview
+# 1. Purpose
 
-OptiVest is a production-quality Portfolio Optimization & Risk Analytics platform built using FastAPI and React.
+This document provides a concise snapshot of the current state of the
+OptiVest repository.
 
-The project is intentionally engineered to demonstrate:
+Unlike the Project Specification and Software Architecture documents,
+this document changes after the completion of each development phase.
 
-- Production-quality software engineering
-- Quantitative finance
-- Clean architecture
-- Financial correctness
+Its purpose is to communicate repository progress, implemented
+capabilities, current milestones, repository health, and upcoming work.
+
+---
+
+# 2. Repository Overview
+
+OptiVest is a production-quality Portfolio Optimization and Risk
+Analytics platform developed using an incremental, phase-driven
+development process.
+
+The repository follows a Layered Modular Monolith architecture and
+prioritizes:
+
+- Correctness
 - Maintainability
-- Interview readiness
+- Strong separation of concerns
+- Deterministic financial computation
+- Comprehensive testing
 
-The primary goal is to build an application suitable for:
-
-- IIT campus placements
-- Software Engineering interviews
-- Quantitative Finance interviews
-- FinTech roles
-
-The backend follows a **Layered Modular Monolith Architecture**.
-
-```
-FastAPI
-    ↓
-API Layer
-    ↓
-Service Layer
-    ↓
-Financial Engines
-    ↓
-Database / External APIs
-```
-
-The project follows strict separation of concerns.
-
-- APIs own HTTP.
-- Services own business logic.
-- Financial Engines own mathematics.
-- Database owns persistence.
+Every completed phase becomes part of the stable foundation for future
+development.
 
 ---
 
-# Current Status
+# 3. Repository Metrics
 
-## Overall Progress
-
-| Phase | Status |
-|--------|--------|
-| Phase 0 — Foundation | ✅ Complete |
-| Phase 1 — Authentication | ✅ Complete |
-| Phase 2 — Portfolio CRUD | ✅ Complete |
-| Phase 3 — Market Data Foundation | ✅ Complete |
-| Phase 4 — Portfolio Statistics Foundation | 🚧 In Progress |
-
----
-
-# Phase 4 Progress
-
-## Completed
-
-### Financial Engine
-
-- [x] Statistics package
-- [x] Expected Returns Engine
-- [x] Covariance Matrix Engine
-- [x] Correlation Matrix Engine
-- [x] Portfolio Volatility Engine
-- [x] Statistics Validation Helpers
-
-### Testing
-
-- [x] Expected Returns tests
-- [x] Covariance tests
-- [x] Correlation tests
-- [x] Portfolio Volatility tests
-
-## Remaining
-
-### Application Layer
-
-- [ ] Statistics Service
-- [ ] Statistics Schemas
-- [ ] Statistics API
-- [ ] Router registration
-
-### Testing
-
-- [ ] Statistics Service Tests
-- [ ] Statistics API Tests
-
-### Documentation
-
-- [ ] Phase 4 completion update
-- [ ] Git checkpoint
+| Metric | Status |
+|---------|--------|
+| Current Phase | Phase 5 Complete |
+| Passing Tests | 117 |
+| Failing Tests | 0 |
+| Financial Engines | 3 |
+| Services | 4 |
+| Public REST APIs | Complete through Phase 5 |
+| Architecture | Layered Modular Monolith |
+| Documentation | Version 1.0 |
 
 ---
 
-# Completed Phases
+# 4. Development Progress
 
----
+## Phase 0 — Foundation
 
-# Phase 0
+Status
 
-## Project Foundation
-
+```text
 Completed
+```
 
-- FastAPI application
-- Environment configuration
+Implemented
+
+- Repository structure
 - Configuration management
 - Logging
+- Database infrastructure
 - SQLAlchemy setup
-- PostgreSQL integration
-- Alembic migrations
-- Root endpoint
-- Health endpoint
-- Swagger configuration
+- Session management
+- Base ORM models
 
 ---
 
-# Phase 1
+## Phase 1 — Authentication
 
-## Authentication
+Status
 
+```text
 Completed
-
-- User model
-- Password hashing
-- JWT Authentication
-- Registration
-- Login
-- Protected routes
-- Authentication dependencies
-- Authentication Service
-- Security utilities
-
-Testing
-
-- Authentication API tests
-- Security tests
-
----
-
-# Phase 2
-
-## Portfolio CRUD
-
-Completed
-
-- Portfolio model
-- Portfolio schemas
-- Portfolio Service
-- Portfolio API
-- Create portfolio
-- Read portfolio
-- Update portfolio
-- Delete portfolio
-- Ownership validation
-
-Testing
-
-- Portfolio API tests
-
----
-
-# Phase 3
-
-## Market Data Foundation
-
-### Financial Engine
-
-Completed
-
-- Yahoo Finance integration
-- Historical adjusted close retrieval
-- Market data validation
-- Daily returns calculation
-- Annualization utilities
-
-### Service Layer
-
-Completed
-
-- MarketDataService
-- Business validation
-- Ticker normalization
-- Date validation
-
-### API
-
-Completed
-
-- Historical prices endpoint
-- Daily returns endpoint
-- Response schemas
-- DataFrame serialization
-- HTTP error translation
-
-### Testing
-
-Completed
-
-- Market Data Engine tests
-- Returns tests
-- Validation tests
-- Annualization tests
-- Service tests
-- API tests
-
----
-
-# Phase 4
-
-## Portfolio Statistics Foundation
-
-### Financial Engine
-
-Completed
-
-```
-statistics/
-
-__init__.py
-validation.py
-expected_returns.py
-covariance.py
-correlation.py
-volatility.py
 ```
 
 Implemented
+
+- User registration
+- User login
+- JWT authentication
+- Password hashing
+- Protected endpoints
+- Authentication testing
+
+---
+
+## Phase 2 — Portfolio CRUD
+
+Status
+
+```text
+Completed
+```
+
+Implemented
+
+- Portfolio creation
+- Portfolio updates
+- Portfolio deletion
+- Ownership validation
+- CRUD API
+- Automated tests
+
+---
+
+## Phase 3 — Market Data
+
+Status
+
+```text
+Completed
+```
+
+Implemented
+
+Financial Engine
+
+- Historical return processing
+- Annualization
+- Validation
+
+Application
+
+- MarketDataService
+- REST API
+- Automated tests
+
+---
+
+## Phase 4 — Portfolio Statistics
+
+Status
+
+```text
+Completed
+```
+
+Implemented
+
+Financial Engine
 
 - Expected annual returns
-- Annualized covariance matrix
+- Covariance matrix
 - Correlation matrix
 - Portfolio volatility
-- Shared return validation
 
-### Mathematical Features
+Application
 
-Implemented
-
-- Mean daily returns
-- Annualized expected returns
-- Daily covariance matrix
-- Annualized covariance matrix
-- Pearson correlation matrix
-- Portfolio volatility using
-
-```
-σ = √(wᵀΣw)
-```
-
-### Numerical Validation
-
-Implemented
-
-- Empty datasets
-- Insufficient observations
-- NaN handling
-- Numeric validation
-- Weight validation
-- Matrix compatibility checks
-- Numerical stability for floating-point precision
-
-### Testing
-
-Completed
-
-- Expected Returns tests
-- Covariance tests
-- Correlation tests
-- Portfolio Volatility tests
-
----
-
-# Current Backend Structure
-
-```
-backend/
-
-app/
-
-├── api/
-│   ├── dependencies/
-│   └── v1/
-│       ├── auth.py
-│       ├── health.py
-│       ├── market_data.py
-│       ├── portfolio.py
-│       ├── root.py
-│       └── router.py
-│       ├── statistics.py
-│      
-|    
-│
-├── core/
-│   ├── config.py
-│   ├── logging.py
-│   └── security.py
-│
-├── database/
-│   ├── base.py
-│   └── session.py
-│
-├── financial_engines/
-│   ├── market_data/
-│   │   ├── annualization.py
-│   │   ├── market_data_engine.py
-│   │   ├── returns.py
-│   │   └── validation.py
-│   │
-│   └── statistics/
-│       ├── __init__.py
-│       ├── correlation.py
-│       ├── covariance.py
-│       ├── expected_returns.py
-│       ├── validation.py
-│       └── volatility.py
-│
-├── models/
-│   ├── portfolio.py
-│   └── user.py
-│
-├── schemas/
-│   ├── auth.py
-│   ├── market_data.py
-│   └── portfolio.py
-│   └──statistics.py 
-│
-├── services/
-│   ├── auth_service.py
-│   ├── market_data_service.py
-│   └── portfolio_service.py
-│   ├── statistics_services.py
-│
-└── main.py
-
-tests/
-
-├── financial_engines/
-│   ├── market_data/
-│   └── services/
-|   |    └──test_statistics_api.py
-│   └── api/
-|       └──test_statistics_api.py
-│   └── statistics/
-│       ├── test_expected_returns.py
-│       ├── test_covariance.py
-│       ├── test_correlation.py
-│       └── test_volatility.py
-│
-├── conftest.py
-├── test_auth_api.py
-├── test_market_data_api.py
-├── test_portfolio_api.py
-└── test_security.py
-```
-
----
-
-# Architecture Status
-
-## API Layer
-
-Completed
-
-- Authentication
-- Portfolio
-- Market Data
-- Statistics
-
-Pending
-
-
-- Optimization
-- Simulation
-- Risk
-
----
-
-## Service Layer
-
-Completed
-
-- AuthService
-- PortfolioService
-- MarketDataService
 - StatisticsService
+- REST API
+- Automated tests
 
-Pending
+---
 
+## Phase 5 — Portfolio Optimization
+
+Status
+
+```text
+Completed
+```
+
+Implemented
+
+Financial Engine
+
+- Mean-Variance Optimization
+- Minimum Variance Optimization
+- Maximum Sharpe Optimization
+- Efficient Frontier
+- Optimization validation
+- Shared optimization utilities
+- Immutable optimization models
+
+Application
 
 - OptimizationService
-- SimulationService
-- RiskAnalyticsService
+- Request/Response schemas
+- REST API
+- API tests
+
+Repository Status
+
+```text
+Financial Engine Frozen
+
+117 Passing Tests
+```
 
 ---
 
-## Financial Engines
+# 5. Current Repository Structure
 
-Completed
+The repository currently consists of the following primary modules.
 
-### Market Data
+```text
+API
 
-- Historical prices
-- Daily returns
-- Annualization
-- Validation
+↓
 
-### Statistics
+Services
 
-- Expected returns
-- Covariance
-- Correlation
-- Portfolio volatility
+↓
 
-Pending
+Financial Engines
 
+↓
+
+Infrastructure
+```
+
+Implemented Financial Engines
+
+- Market Data
+- Statistics
 - Optimization
-- Monte Carlo
+
+Upcoming Financial Engines
+
+- Monte Carlo Simulation
 - Risk Analytics
-- Backtesting
 
 ---
 
-# Testing Status
+# 6. Frozen Components
 
-Current Passing Tests
+The following modules are considered stable.
 
+Financial Engines
+
+- Market Data
+- Statistics
+- Optimization
+
+Frozen modules should not be modified unless a verified correctness bug
+or numerical stability issue has been identified.
+
+
+# 7. Repository Health
+
+The repository is currently in a stable state.
+
+All completed phases have been validated through automated testing and
+adhere to the architectural principles defined in the Software
+Architecture document.
+
+Current health indicators:
+
+| Category | Status |
+|----------|--------|
+| Build | Stable |
+| Architecture | Stable |
+| Financial Engines | Stable |
+| Services | Stable |
+| REST APIs | Stable |
+| Documentation | Updated |
+| Automated Tests | Passing |
+
+At the completion of Phase 5:
+
+```text
+117 Passing Tests
+
+0 Failing Tests
 ```
-61 Passed
-0 Failed
-```
 
-Coverage includes
-
-- Authentication
-- Security
-- Portfolio CRUD
-- Market Data Engine
-- Statistics Engine
-- Market Data API
-- Annualization
-- Validation
-- Returns
+The repository is ready to begin Phase 6.
 
 ---
 
-# Accepted Engineering Decisions
+# 8. Current Technical Debt
 
-Current repository follows
+Version 1 intentionally maintains a low level of technical debt.
 
-- Layered Modular Monolith
-- Framework-independent Financial Engines
-- Services own business logic
-- APIs remain thin
-- DataFrames are internal financial representations
-- API layer performs serialization
-- External APIs mocked during testing
-- Mathematical engines remain deterministic
+The repository contains no known architectural violations.
 
----
+The following items remain planned rather than deferred technical debt:
 
-# Version 1 Constraints
+- Monte Carlo Simulation Engine
+- Risk Analytics Engine
+- Portfolio Health Module
+- React Frontend
+- Production Deployment
 
-The following are intentionally NOT implemented
-
-- Repository Pattern
-- Unit of Work
-- Interfaces
-- Managers
-- Generic CRUD
-- Generic Services
-- Factory Pattern
-
-The project follows the Rule of Three before introducing abstractions.
+These are future features and should not be interpreted as incomplete
+implementations.
 
 ---
 
-# Current Development Workflow
+# 9. Repository Constraints
 
-Every feature follows
+Version 1 follows several engineering constraints.
 
-```
-Design
+## Minimal Repository Philosophy
+
+Every file must directly contribute to implemented functionality.
+
+Placeholder modules, speculative abstractions, and unused packages are
+not permitted.
+
+New files should only be introduced when they provide an immediate,
+well-defined responsibility.
+
+---
+
+## Financial Engine Stability
+
+Completed Financial Engines are considered frozen.
+
+Modifications are permitted only when:
+
+- a mathematical correctness issue exists,
+- a numerical stability issue is identified,
+- or a verified implementation defect is discovered.
+
+Feature development should extend higher architectural layers rather
+than modifying validated engines.
+
+---
+
+## Controlled Growth
+
+Before creating a new module, contributors should evaluate whether the
+required functionality naturally belongs within an existing component.
+
+Repository growth should occur gradually through justified additions
+rather than speculative scaffolding.
+
+---
+
+# 10. Current Development Strategy
+
+Future development continues to follow the established workflow.
+
+```text
+Engineering Review
 
 ↓
 
-Implementation
+Architecture Validation
 
 ↓
 
-python -m compileall app
+Financial Engine
 
 ↓
 
-Runtime Validation
+Financial Engine Tests
 
 ↓
 
-pytest
+Service
 
 ↓
 
-Documentation Update
+Service Tests
+
+↓
+
+Schemas
+
+↓
+
+REST API
+
+↓
+
+API Tests
+
+↓
+
+Documentation
+
+↓
+
+Full Test Suite
 
 ↓
 
 Git Commit
 ```
 
-No feature is considered complete until every step succeeds.
+Every completed phase must preserve repository stability.
 
 ---
 
-# Git Checkpoint
+# 11. Next Milestone
 
-Current recommended commit
+The next planned milestone is:
 
-```
-feat(statistics): implement portfolio statistics financial engine
-```
+## Phase 6 — Monte Carlo Simulation
 
----
-
-# Immediate Next Objective
-
-Complete the remaining Phase 4 application layer.
-
-Implement
-
-- StatisticsService
-- Statistics response schemas
-- Statistics API
-- Statistics router registration
-- Service tests
-- API tests
-
-Target
-
-```
-60+ Passing Tests
-```
-
----
-
-# Future Roadmap
-
-## Phase 5
-
-Phase 5 — Portfolio Optimization
-
-Implement
-
-• Optimization Financial Engine
-• Constraint Validation
-• Optimization Service
-• Optimization Schemas
-• Optimization API
-• Optimization Tests
-
-Target
-
-75+ Passing Tests
-
-## Phase 6
-
-Monte Carlo Simulation
-
-- Random portfolio generation
-- Portfolio visualization
-- Efficient Frontier comparison
-
----
-
-## Phase 7
-
-Risk Analytics
-
-- Sharpe Ratio
-- Sortino Ratio
-- Maximum Drawdown
-- Historical VaR
-- Historical CVaR
-
----
-
-## Phase 8
-
-Backtesting
-
-- Portfolio performance
-- Benchmark comparison
-- Rolling statistics
-
----
-
-# Long-Term Vision
-
-Phase 4 establishes the complete statistical foundation required for:
-
-- Portfolio Optimization
-- Efficient Frontier
-- Monte Carlo Simulation
-- Risk Analytics
-
-No refactoring of the Financial Engine should be required in future phases.
-
-# Phase 4
-
-## Completed
+Objectives include:
 
 ### Financial Engine
 
-- Statistics package
-- Expected Annual Returns
-- Daily Covariance Matrix
-- Annualized Covariance Matrix
-- Correlation Matrix
-- Portfolio Volatility
-- Shared Statistics Validation
-
-### Service Layer
-
-- StatisticsService
-- Business Validation
-- MarketDataService orchestration
-
-### API
-
-- GET /statistics/returns
-- GET /statistics/covariance
-- GET /statistics/correlation
-- GET /statistics/volatility
-
-### Schemas
-
-- ExpectedReturnsResponse
-- CovarianceMatrixResponse
-- CorrelationMatrixResponse
-- PortfolioVolatilityResponse
-
-### Testing
-
-- Statistics Engine Tests
-- Statistics Service Tests
-- Statistics API Tests
-
-Status
-
-Completed
-
-
-## 05_PROJECT_STATE.md
-
-### Current Project Status
-
-**Project:** OptiVest — Production-Quality Portfolio Analytics Platform
-
-**Architecture:** Layered Modular Monolith
-
-**Current Phase:** Phase 5 (Financial Engine) Completed
+- Random portfolio generation
+- Weight normalization
+- Portfolio return computation
+- Portfolio volatility computation
+- Sharpe ratio computation
 
 ---
 
-# Completed Phases
+### Application Layer
 
-## Phase 0 — Foundation
-
-* FastAPI Project Structure
-* Configuration
-* Database
-* Authentication Infrastructure
-* Logging
-* Security
-* Session Management
-
-Status: ✅ Complete
+- SimulationService
+- Request/Response schemas
+- REST API
+- Automated tests
 
 ---
 
-## Phase 1 — Authentication
+### Documentation
 
-* User Registration
-* User Login
-* JWT Authentication
-* Password Hashing
-* Authentication API
-* Authentication Tests
+Update:
 
-Status: ✅ Complete
+- Project State
+- Decisions
+
+after successful completion of the phase.
 
 ---
 
-## Phase 2 — Portfolio CRUD
+# 12. Repository Statistics
 
-* Portfolio Model
-* Portfolio Service
-* Portfolio API
-* CRUD Operations
-* Portfolio Tests
+Current implementation includes:
 
-Status: ✅ Complete
+## Implemented Phases
 
----
-
-## Phase 3 — Market Data Foundation
-
-Financial Engine
-
-* Historical Market Data Engine
-* Daily Returns
-* Annualization Utilities
-* Market Data Validation
-
-Service Layer
-
-* MarketDataService
-
-API
-
-* Historical Prices
-* Daily Returns
-
-Testing
-
-* Financial Engine Tests
-* Service Tests
-* API Tests
-
-Status: ✅ Complete
+- Phase 0 — Foundation
+- Phase 1 — Authentication
+- Phase 2 — Portfolio CRUD
+- Phase 3 — Market Data
+- Phase 4 — Portfolio Statistics
+- Phase 5 — Portfolio Optimization
 
 ---
 
-## Phase 4 — Portfolio Statistics Foundation
+## Implemented Financial Engines
 
-Financial Engine
-
-* Expected Annual Returns
-* Daily Covariance Matrix
-* Annualized Covariance Matrix
-* Correlation Matrix
-* Portfolio Volatility
-* Shared Statistics Validation
-
-Service Layer
-
-* StatisticsService
-
-API
-
-* Expected Returns
-* Covariance Matrix
-* Correlation Matrix
-* Portfolio Volatility
-
-Testing
-
-* Statistics Financial Engine Tests
-* Statistics Service Tests
-* Statistics API Tests
-
-Status: ✅ Complete
+- Market Data
+- Statistics
+- Optimization
 
 ---
 
-## Phase 5 — Portfolio Optimization (Financial Engine)
+## Planned Financial Engines
 
-Financial Engine
-
-* Optimization Validation
-* Shared CVXPY Utilities
-* Mean-Variance Optimization
-* Minimum Variance Portfolio
-* Maximum Sharpe Portfolio
-* Efficient Frontier Generation
-* Immutable EfficientFrontierPoint Domain Model
-
-Testing
-
-* Validation Tests
-* Mean-Variance Tests
-* Minimum Variance Tests
-* Maximum Sharpe Tests
-* Efficient Frontier Tests
-
-Status: ✅ Financial Engine Complete
+- Monte Carlo Simulation
+- Risk Analytics
 
 ---
 
-# Current Test Status
+## Application Components
 
-Authentication
+Implemented:
 
-* Passed
+- Authentication
+- Portfolio Management
+- Market Data
+- Statistics
+- Optimization
 
-Portfolio
+Planned:
 
-* Passed
-
-Market Data
-
-* Passed
-
-Statistics
-
-* Passed
-
-Optimization Financial Engine
-
-* Passed
-
-Total Passing Tests
-
-**103 Passed**
-
-**0 Failed**
+- Portfolio Health
+- Frontend
+- Deployment
 
 ---
 
-# Current Project Structure
+# 13. Repository Maintenance Notes
 
-```
-app/
+To preserve repository quality, contributors should ensure that:
 
-├── api/
-├── core/
-├── database/
-├── financial_engines/
-│   ├── market_data/
-│   ├── statistics/
-│   └── optimization/
-│       ├── __init__.py
-│       ├── validation.py
-│       ├── _base.py
-│       ├── mean_variance.py
-│       ├── minimum_variance.py
-│       ├── maximum_sharpe.py
-│       └── efficient_frontier.py
-├── models/
-├── schemas/
-├── services/
-└── utils/
+- Architecture remains consistent.
+- Layer responsibilities remain unchanged.
+- Financial computation stays framework independent.
+- Business logic remains inside Services.
+- APIs remain thin and focused.
+- Tests accompany every completed feature.
+- Documentation reflects the current repository state.
 
-tests/
+Completed phases should not be revisited unless required to fix a
+verified defect.
 
-├── api/
-├── financial_engines/
-│   ├── market_data/
-│   ├── statistics/
-│   └── optimization/
-├── services/
-└── conftest.py
+---
+
+# 14. Changelog
+
+## Phase 5
+
+Completed:
+
+- Optimization Financial Engine
+- Optimization Domain Models
+- Optimization Service
+- Optimization Schemas
+- Optimization REST API
+- Optimization API Tests
+
+Repository state after completion:
+
+```text
+117 Passing Tests
+
+Financial Engine Frozen
+
+Phase 5 Complete
 ```
 
 ---
 
-# Next Phase
+# 15. Summary
 
-Continue Phase 5
+The repository has successfully completed the foundational backend
+required for quantitative portfolio optimization.
 
-Service Layer
+At the conclusion of Phase 5, OptiVest provides:
 
-1. OptimizationService
-2. Service Tests
-3. Optimization Schemas
-4. Optimization API
-5. API Tests
+- Secure authentication
+- Portfolio management
+- Historical market data processing
+- Portfolio statistics
+- Portfolio optimization
+- REST APIs
+- Comprehensive automated testing
 
-Target
+The repository now possesses a stable, well-tested foundation for the
+implementation of advanced quantitative features including Monte Carlo
+Simulation, Risk Analytics, Portfolio Health assessment, interactive
+visualization, and production deployment.
 
-120+ Passing Tests
+Future work should continue following the established architectural
+principles while preserving the stability and quality achieved during
+the first five development phases.
+
+---
+
+**End of Document**
+
+**Document:** 05_PROJECT_STATE.md
+
+**Version:** 1.0
+
+**Repository Status:** Phase 5 Complete
+
+**Current Test Status:** 117 Passing
+
+**Financial Engines Implemented:**
+- Market Data
+- Statistics
+- Optimization
+
+**Financial Engines Planned:**
+- Monte Carlo Simulation
+- Risk Analytics
+
+**Next Planned Phase:** Phase 6 – Monte Carlo Simulation
+
+OptiVest/
+│
+├── backend/
+│   │
+│   ├── app/
+│   │   │
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   └── v1/
+│   │   │       ├── __init__.py
+│   │   │       ├── auth.py
+│   │   │       ├── portfolio.py
+│   │   │       ├── market_data.py
+│   │   │       ├── statistics.py
+│   │   │       ├── optimization.py
+│   │   │       └── router.py
+│   │   │
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── config.py
+│   │   │   ├── logging.py
+│   │   │   └── security.py
+│   │   │
+│   │   ├── database/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   └── session.py
+│   │   │
+│   │   ├── financial_engines/
+│   │   │   │
+│   │   │   ├── statistics/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── expected_returns.py
+│   │   │   │   ├── covariance.py
+│   │   │   │   ├── correlation.py
+│   │   │   │   ├── volatility.py
+│   │   │   │   └── validation.py
+│   │   │   │
+│   │   │   └── optimization/
+│   │   │       ├── __init__.py
+│   │   │       ├── _base.py
+│   │   │       ├── validation.py
+│   │   │       ├── models.py
+│   │   │       ├── mean_variance.py
+│   │   │       ├── minimum_variance.py
+│   │   │       ├── maximum_sharpe.py
+│   │   │       └── efficient_frontier.py
+│   │   │
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── user.py
+│   │   │
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── portfolio.py
+│   │   │   ├── market_data.py
+│   │   │   ├── statistics.py
+│   │   │   └── optimization.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_service.py
+│   │   │   ├── portfolio_service.py
+│   │   │   ├── market_data_service.py
+│   │   │   ├── statistics_service.py
+│   │   │   └── optimization_service.py
+│   │   │
+│   │   └── main.py
+│   │
+│   ├── alembic/
+│   │   ├── versions/
+│   │   ├── env.py
+│   │   └── script.py.mako
+│   │
+│   ├── tests/
+│   │   ├── conftest.py
+│   │   │
+│   │   ├── api/
+│   │   │   ├── test_auth_api.py
+│   │   │   ├── test_portfolio_api.py
+│   │   │   ├── test_market_data_api.py
+│   │   │   ├── test_statistics_api.py
+│   │   │   └── test_optimization_api.py
+│   │   │
+│   │   ├── financial_engines/
+│   │   │   ├── statistics/
+│   │   │   │   ├── test_expected_returns.py
+│   │   │   │   ├── test_covariance.py
+│   │   │   │   ├── test_correlation.py
+│   │   │   │   ├── test_volatility.py
+│   │   │   │   └── test_validation.py
+│   │   │   │
+│   │   │   └── optimization/
+│   │   │       ├── test_validation.py
+│   │   │       ├── test_mean_variance.py
+│   │   │       ├── test_minimum_variance.py
+│   │   │       ├── test_maximum_sharpe.py
+│   │   │       ├── test_efficient_frontier.py
+│   │   │       └── test_models.py
+│   │   │
+│   │   └── services/
+│   │       ├── test_market_data_service.py
+│   │       ├── test_statistics_service.py
+│   │       └── test_optimization_service.py
+│   │
+│   ├── requirements.txt
+│   ├── requirements-dev.txt
+│   ├── pyproject.toml
+│   └── pytest.ini
+│
+├── frontend/
+│
+├── docs/
+│   ├── PROJECT_STATE.md
+│   ├── DECISIONS.md
+│   ├── API.md
+│   └── ARCHITECTURE.md
+│
+├── scripts/
+│
+├── .gitignore
+├── LICENSE
+├── README.md
+└── docker-compose.yml
