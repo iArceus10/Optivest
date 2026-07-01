@@ -13,6 +13,9 @@ from app.api.v1.optimization import (
 from app.api.v1.simulation import (
     router as simulation_router,
 )
+from app.api.v1.risk import (
+    router as risk_router,
+)
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -27,4 +30,7 @@ api_router.include_router(
 )
 api_router.include_router(
     simulation_router,
+)
+api_router.include_router(
+    risk_router,
 )

@@ -6,15 +6,15 @@
 
 **Project Version:** Version 1
 
-**Repository Status:** Phase 5 Complete
+**Repository Status:** Phase 7 Complete
 
-**Current Phase:** Phase 5 – Portfolio Optimization
+**Current Phase:** Phase 8 
 
-**Current Test Status:** 117 Passing
+**Current Test Status:** 194 Passing
 
 **Architecture:** Layered Modular Monolith
 
-**Last Updated:** After Phase 5 Completion
+**Last Updated:** After Phase 7 Completion
 
 ---
 
@@ -55,12 +55,11 @@ development.
 
 | Metric | Status |
 |---------|--------|
-| Current Phase | Phase 5 Complete |
-| Passing Tests | 117 |
-| Failing Tests | 0 |
-| Financial Engines | 3 |
-| Services | 4 |
-| Public REST APIs | Complete through Phase 5 |
+| Current Phase | Phase 7 Complete |
+| Passing Tests | 194 |
+| Financial Engines | 4 |
+| Services | 5 |
+| Public REST APIs | Complete through Phase 6 |
 | Architecture | Layered Modular Monolith |
 | Documentation | Version 1.0 |
 
@@ -212,6 +211,51 @@ Financial Engine Frozen
 
 ---
 
+## Phase 6 — Monte Carlo Portfolio Simulation
+
+Status
+
+```text
+Completed
+```
+
+Implemented
+
+Financial Engine
+
+- Random portfolio generation
+- Portfolio return computation
+- Portfolio volatility computation
+- Sharpe ratio computation
+- Deterministic simulation using configurable random seeds
+- Immutable simulation domain models
+
+Application
+
+- SimulationService
+- Request/Response schemas
+- REST API
+- API tests
+
+Repository Status
+
+```text
+Financial Engine Complete
+
+144 Passing Tests
+
+✓ Phase 7
+    ✓ Risk Analytics Financial Engine
+    ✓ Risk Domain Models
+    ✓ Risk Validation
+    ✓ Risk Service
+    ✓ Risk Schemas
+    ✓ Risk REST API
+    ✓ Risk Financial Engine Tests
+    ✓ Risk Service Tests
+    ✓ Risk API Tests
+```
+
 # 5. Current Repository Structure
 
 The repository currently consists of the following primary modules.
@@ -231,16 +275,15 @@ Financial Engines
 
 Infrastructure
 ```
-
 Implemented Financial Engines
 
 - Market Data
 - Statistics
 - Optimization
+- Monte Carlo Simulation
 
 Upcoming Financial Engines
 
-- Monte Carlo Simulation
 - Risk Analytics
 
 ---
@@ -251,9 +294,13 @@ The following modules are considered stable.
 
 Financial Engines
 
-- Market Data
-- Statistics
-- Optimization
+Statistics Engine is frozen.
+
+Optimization Engine is frozen.
+
+Monte Carlo Engine is frozen.
+
+Risk Analytics Engine is frozen.
 
 Frozen modules should not be modified unless a verified correctness bug
 or numerical stability issue has been identified.
@@ -282,7 +329,7 @@ Current health indicators:
 At the completion of Phase 5:
 
 ```text
-117 Passing Tests
+144 Passing Tests
 
 0 Failing Tests
 ```
@@ -299,7 +346,6 @@ The repository contains no known architectural violations.
 
 The following items remain planned rather than deferred technical debt:
 
-- Monte Carlo Simulation Engine
 - Risk Analytics Engine
 - Portfolio Health Module
 - React Frontend
@@ -411,23 +457,23 @@ Every completed phase must preserve repository stability.
 
 The next planned milestone is:
 
-## Phase 6 — Monte Carlo Simulation
+## Phase 7 — Risk Analytics
 
 Objectives include:
 
 ### Financial Engine
 
-- Random portfolio generation
-- Weight normalization
-- Portfolio return computation
-- Portfolio volatility computation
-- Sharpe ratio computation
+- Sharpe Ratio
+- Sortino Ratio
+- Maximum Drawdown
+- Historical Value-at-Risk (VaR)
+- Conditional Value-at-Risk (CVaR)
 
 ---
 
 ### Application Layer
 
-- SimulationService
+- RiskAnalyticsService
 - Request/Response schemas
 - REST API
 - Automated tests
@@ -441,13 +487,13 @@ Update:
 - Project State
 - Decisions
 
-after successful completion of the phase.
-
----
+after successful completion of the phase.   
 
 # 12. Repository Statistics
 
 Current implementation includes:
+
+## Implemented Phases
 
 ## Implemented Phases
 
@@ -457,20 +503,28 @@ Current implementation includes:
 - Phase 3 — Market Data
 - Phase 4 — Portfolio Statistics
 - Phase 5 — Portfolio Optimization
+- Phase 6 — Monte Carlo Portfolio Simulation
 
 ---
 
 ## Implemented Financial Engines
 
-- Market Data
-- Statistics
-- Optimization
+## Implemented Financial Engines
 
+Market Data
+
+Statistics
+
+Optimization
+
+Monte Carlo Simulation
+
+Risk Analytics
 ---
+
 
 ## Planned Financial Engines
 
-- Monte Carlo Simulation
 - Risk Analytics
 
 ---
@@ -479,11 +533,14 @@ Current implementation includes:
 
 Implemented:
 
+Implemented:
+
 - Authentication
 - Portfolio Management
 - Market Data
 - Statistics
 - Optimization
+- Monte Carlo Portfolio Simulation
 
 Planned:
 
@@ -512,25 +569,23 @@ verified defect.
 
 # 14. Changelog
 
-## Phase 5
+## Phase 6
 
 Completed:
 
-- Optimization Financial Engine
-- Optimization Domain Models
-- Optimization Service
-- Optimization Schemas
-- Optimization REST API
-- Optimization API Tests
+- Monte Carlo Financial Engine
+- Monte Carlo Domain Models
+- SimulationService
+- Simulation Schemas
+- Simulation REST API
+- Simulation API Tests
 
 Repository state after completion:
 
 ```text
-117 Passing Tests
+144 Passing Tests
 
-Financial Engine Frozen
-
-Phase 5 Complete
+Phase 6 Complete
 ```
 
 ---
@@ -540,13 +595,14 @@ Phase 5 Complete
 The repository has successfully completed the foundational backend
 required for quantitative portfolio optimization.
 
-At the conclusion of Phase 5, OptiVest provides:
+At the conclusion of Phase , OptiVest provides:
 
 - Secure authentication
 - Portfolio management
 - Historical market data processing
 - Portfolio statistics
 - Portfolio optimization
+- Monte Carlo portfolio simulation
 - REST APIs
 - Comprehensive automated testing
 
@@ -567,9 +623,11 @@ the first five development phases.
 
 **Version:** 1.0
 
-**Repository Status:** Phase 5 Complete
+**Repository Status:** Phase 6 Complete
 
-**Current Test Status:** 117 Passing
+**Current Phase:** Phase 6 – Monte Carlo Portfolio Simulation
+
+**Current Test Status:** 144 Passing
 
 **Financial Engines Implemented:**
 - Market Data
@@ -580,131 +638,111 @@ the first five development phases.
 - Monte Carlo Simulation
 - Risk Analytics
 
-**Next Planned Phase:** Phase 6 – Monte Carlo Simulation
+**Next Planned Phase:** Phase 8 – Portfolio Health Analytics
 
-OptiVest/
+app
 │
-├── backend/
+├── api
+│   └── v1
+│       ├── auth.py
+│       ├── health.py
+│       ├── market_data.py
+│       ├── optimization.py
+│       ├── portfolio.py
+│       ├── risk.py
+│       ├── root.py
+│       ├── router.py
+│       ├── simulation.py
+│       └── statistics.py
+│
+├── core
+│   ├── config.py
+│   ├── logging.py
+│   └── security.py
+│
+├── database
+│   ├── base.py
+│   └── session.py
+│
+├── financial_engines
+│   ├── market_data
+│   │   ├── annualization.py
+│   │   ├── market_data_engine.py
+│   │   ├── returns.py
+│   │   └── validation.py
 │   │
-│   ├── app/
-│   │   │
-│   │   ├── api/
-│   │   │   ├── __init__.py
-│   │   │   └── v1/
-│   │   │       ├── __init__.py
-│   │   │       ├── auth.py
-│   │   │       ├── portfolio.py
-│   │   │       ├── market_data.py
-│   │   │       ├── statistics.py
-│   │   │       ├── optimization.py
-│   │   │       └── router.py
-│   │   │
-│   │   ├── core/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py
-│   │   │   ├── config.py
-│   │   │   ├── logging.py
-│   │   │   └── security.py
-│   │   │
-│   │   ├── database/
-│   │   │   ├── __init__.py
-│   │   │   ├── base.py
-│   │   │   └── session.py
-│   │   │
-│   │   ├── financial_engines/
-│   │   │   │
-│   │   │   ├── statistics/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── expected_returns.py
-│   │   │   │   ├── covariance.py
-│   │   │   │   ├── correlation.py
-│   │   │   │   ├── volatility.py
-│   │   │   │   └── validation.py
-│   │   │   │
-│   │   │   └── optimization/
-│   │   │       ├── __init__.py
-│   │   │       ├── _base.py
-│   │   │       ├── validation.py
-│   │   │       ├── models.py
-│   │   │       ├── mean_variance.py
-│   │   │       ├── minimum_variance.py
-│   │   │       ├── maximum_sharpe.py
-│   │   │       └── efficient_frontier.py
-│   │   │
-│   │   ├── models/
-│   │   │   ├── __init__.py
-│   │   │   └── user.py
-│   │   │
-│   │   ├── schemas/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py
-│   │   │   ├── portfolio.py
-│   │   │   ├── market_data.py
-│   │   │   ├── statistics.py
-│   │   │   └── optimization.py
-│   │   │
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth_service.py
-│   │   │   ├── portfolio_service.py
-│   │   │   ├── market_data_service.py
-│   │   │   ├── statistics_service.py
-│   │   │   └── optimization_service.py
-│   │   │
-│   │   └── main.py
+│   ├── optimization
+│   │   ├── __init__.py
+│   │   ├── _base.py
+│   │   ├── efficient_frontier.py
+│   │   ├── maximum_sharpe.py
+│   │   ├── mean_variance.py
+│   │   ├── minimum_variance.py
+│   │   ├── models.py
+│   │   └── validation.py
 │   │
-│   ├── alembic/
-│   │   ├── versions/
-│   │   ├── env.py
-│   │   └── script.py.mako
+│   ├── risk
+│   │   ├── __init__.py
+│   │   ├── drawdown.py
+│   │   ├── models.py
+│   │   ├── ratios.py
+│   │   ├── validation.py
+│   │   └── value_at_risk.py
 │   │
-│   ├── tests/
-│   │   ├── conftest.py
-│   │   │
-│   │   ├── api/
-│   │   │   ├── test_auth_api.py
-│   │   │   ├── test_portfolio_api.py
-│   │   │   ├── test_market_data_api.py
-│   │   │   ├── test_statistics_api.py
-│   │   │   └── test_optimization_api.py
-│   │   │
-│   │   ├── financial_engines/
-│   │   │   ├── statistics/
-│   │   │   │   ├── test_expected_returns.py
-│   │   │   │   ├── test_covariance.py
-│   │   │   │   ├── test_correlation.py
-│   │   │   │   ├── test_volatility.py
-│   │   │   │   └── test_validation.py
-│   │   │   │
-│   │   │   └── optimization/
-│   │   │       ├── test_validation.py
-│   │   │       ├── test_mean_variance.py
-│   │   │       ├── test_minimum_variance.py
-│   │   │       ├── test_maximum_sharpe.py
-│   │   │       ├── test_efficient_frontier.py
-│   │   │       └── test_models.py
-│   │   │
-│   │   └── services/
-│   │       ├── test_market_data_service.py
-│   │       ├── test_statistics_service.py
-│   │       └── test_optimization_service.py
+│   ├── simulation
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── monte_carlo.py
+│   │   └── validation.py
 │   │
-│   ├── requirements.txt
-│   ├── requirements-dev.txt
-│   ├── pyproject.toml
-│   └── pytest.ini
+│   └── statistics
+│       ├── correlation.py
+│       ├── covariance.py
+│       ├── expected_returns.py
+│       ├── validation.py
+│       └── volatility.py
 │
-├── frontend/
+├── models
 │
-├── docs/
-│   ├── PROJECT_STATE.md
-│   ├── DECISIONS.md
-│   ├── API.md
-│   └── ARCHITECTURE.md
+├── schemas
+│   ├── auth.py
+│   ├── optimization.py
+│   ├── portfolio.py
+│   ├── risk.py
+│   ├── simulation.py
+│   └── statistics.py
 │
-├── scripts/
+├── services
+│   ├── auth_service.py
+│   ├── market_data_service.py
+│   ├── optimization_service.py
+│   ├── portfolio_service.py
+│   ├── risk_analytics_service.py
+│   ├── simulation_service.py
+│   └── statistics_service.py
 │
-├── .gitignore
-├── LICENSE
-├── README.md
-└── docker-compose.yml
+└── main.py
+
+tests
+│
+├── api
+│   ├── test_optimization_api.py
+│   ├── test_risk_api.py
+│   ├── test_simulation_api.py
+│   └── ...
+│
+├── financial_engines
+│   ├── market_data
+│   ├── optimization
+│   ├── risk
+│   │   ├── test_drawdown.py
+│   │   ├── test_models.py
+│   │   ├── test_ratios.py
+│   │   ├── test_validation.py
+│   │   └── test_value_at_risk.py
+│   ├── simulation
+│   └── statistics
+│
+└── services
+    ├── test_risk_analytics_service.py
+    └── ...

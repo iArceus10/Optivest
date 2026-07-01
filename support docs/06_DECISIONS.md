@@ -459,6 +459,154 @@ addition to implementation ability.
 
 ---
 
+# Decision 033 — Monte Carlo Simulation Reuses Statistics Engine
+
+The Monte Carlo Simulation Engine consumes expected annual returns and
+annualized covariance matrices produced by the Statistics Engine.
+
+The Simulation Engine does not recompute these statistical quantities.
+
+### Reason
+
+Expected returns and covariance estimation are reusable statistical
+computations already owned by the Statistics Engine.
+
+Reusing these outputs avoids duplicated financial calculations while
+preserving clear separation between statistical estimation and portfolio
+simulation.
+
+---
+
+# Decision 034 — Deterministic Monte Carlo Simulation
+
+The Monte Carlo Simulation Engine exposes an optional random seed.
+
+When a seed is supplied, identical numerical inputs produce identical
+simulation outputs.
+
+### Reason
+
+Deterministic execution improves reproducibility, simplifies automated
+testing, and enables consistent financial analysis.
+
+---
+
+# Decision 035 — Monte Carlo Domain Models
+
+Monte Carlo simulation results are represented using immutable domain
+models.
+
+Examples include:
+
+- MonteCarloPortfolio
+- MonteCarloSimulationResult
+
+### Reason
+
+Immutable objects provide a stable interface between the Financial
+Engine and higher architectural layers while preventing accidental
+modification of simulation results.
+
+---
+
+# Decision 036 — Simulation Service Responsibilities
+
+SimulationService performs:
+
+- Market data retrieval
+- Statistics Engine coordination
+- Monte Carlo Financial Engine orchestration
+
+SimulationService performs no financial calculations.
+
+# Decision 037 — Risk Analytics Reuses Historical Returns
+
+The Risk Analytics Financial Engine operates on historical portfolio
+return series.
+
+Historical market data retrieval remains the responsibility of the
+Service layer.
+
+### Reason
+
+Separates business orchestration from deterministic financial
+computation while keeping the Financial Engine framework-independent.
+
+# Decision 038 — Unified Risk Analytics Interface
+
+The Risk Analytics Financial Engine exposes a single public function that
+returns all supported portfolio risk metrics through an immutable domain
+model.
+
+### Reason
+
+Provides a stable Financial Engine interface while preventing Services
+from orchestrating individual mathematical algorithms.
+
+# Decision 039 — Immutable Risk Domain Model
+
+Risk analytics results are represented using the immutable
+RiskAnalyticsResult domain model.
+
+### Reason
+
+Immutable objects provide a stable interface between the Financial
+Engine and higher architectural layers while preventing accidental
+modification of computed risk metrics.
+
+# Decision 040 — Risk Service Responsibilities
+
+RiskAnalyticsService performs:
+
+- market data retrieval
+- portfolio return preparation
+- Financial Engine orchestration
+
+RiskAnalyticsService performs no financial calculations.
+
+### Reason
+
+Business orchestration belongs to Services while financial computation
+remains isolated within Financial Engines.
+
+# Decision 041 — Risk API Responsibilities
+
+Risk Analytics endpoints perform only:
+
+- request validation
+- Service delegation
+- response serialization
+- exception translation
+
+### Reason
+
+REST APIs remain transport layers and contain no business or financial
+logic.
+
+# Decision 042 — Historical Risk Metrics
+
+Version 1 implements historical risk metrics:
+
+- Sharpe Ratio
+- Sortino Ratio
+- Maximum Drawdown
+- Historical Value-at-Risk
+- Historical Conditional Value-at-Risk
+
+No parametric or Monte Carlo-based risk metrics are included.
+
+### Reason
+
+Historical metrics are deterministic, require fewer modelling
+assumptions, and provide a solid production-quality foundation for
+Version 1.
+
+### Reason
+
+Business orchestration belongs to Services while financial computation
+remains isolated within Financial Engines, preserving the Layered
+Modular Monolith architecture.
+
 # Future Decisions
 
 Future phases will extend this document with additional decisions for:
