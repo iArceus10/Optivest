@@ -13,6 +13,7 @@ def valid_inputs() -> dict[str, object]:
         "expected_return": 0.12,
         "volatility": 0.18,
         "sharpe_ratio": 1.30,
+        "best_simulated_sharpe_ratio": 1.60,
         "sortino_ratio": 1.80,
         "maximum_drawdown": 0.15,
         "value_at_risk": 0.06,
@@ -140,6 +141,7 @@ def test_empty_weights() -> None:
             expected_return=0.10,
             volatility=0.15,
             sharpe_ratio=1.20,
+            best_simulated_sharpe_ratio=1.50,
             sortino_ratio=1.60,
             maximum_drawdown=0.12,
             value_at_risk=0.05,
@@ -198,6 +200,24 @@ def test_weights_do_not_sum_to_one(
     with pytest.raises(
         ValueError,
         match="Portfolio weights must sum to 1.",
+    ):
+        validate_portfolio_health_inputs(
+            **valid_inputs,
+        )
+
+def test_best_simulated_sharpe_must_be_positive(
+    valid_inputs: dict[str, object],
+) -> None:
+    valid_inputs[
+        "best_simulated_sharpe_ratio"
+    ] = 0.0
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Best simulated Sharpe ratio "
+            "must be positive."
+        ),
     ):
         validate_portfolio_health_inputs(
             **valid_inputs,

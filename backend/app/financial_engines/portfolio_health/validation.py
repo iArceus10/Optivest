@@ -20,6 +20,7 @@ def validate_portfolio_health_inputs(
     expected_return: float,
     volatility: float,
     sharpe_ratio: float,
+    best_simulated_sharpe_ratio: float,
     sortino_ratio: float,
     maximum_drawdown: float,
     value_at_risk: float,
@@ -66,6 +67,9 @@ def validate_portfolio_health_inputs(
         "Expected return": expected_return,
         "Volatility": volatility,
         "Sharpe ratio": sharpe_ratio,
+        "Best simulated Sharpe ratio": (
+            best_simulated_sharpe_ratio
+        ),
         "Sortino ratio": sortino_ratio,
         "Maximum drawdown": maximum_drawdown,
         "Value-at-Risk": value_at_risk,
@@ -79,6 +83,11 @@ def validate_portfolio_health_inputs(
             raise ValueError(
                 f"{name} must be a finite number."
             )
+
+    if best_simulated_sharpe_ratio <= 0.0:
+        raise ValueError(
+            "Best simulated Sharpe ratio must be positive."
+        )
 
     if volatility < 0:
         raise ValueError(

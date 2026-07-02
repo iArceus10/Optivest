@@ -64,6 +64,35 @@ class StatisticsService:
         return calculate_expected_annual_returns(
             returns
         )
+    
+    @staticmethod
+    def get_portfolio_expected_return(
+        tickers: list[str],
+        weights: list[float],
+        *,
+        start: date,
+        end: date,
+    ) -> float:
+        """
+        Compute the annualized expected portfolio return.
+        """
+
+        if len(tickers) != len(weights):
+            raise ValueError(
+                "Number of weights must match number of tickers."
+            )
+
+        expected_returns = (
+            StatisticsService.get_expected_returns(
+                tickers,
+                start=start,
+                end=end,
+            )
+        )
+
+        return float(
+            expected_returns.dot(weights)
+        )
 
     @staticmethod
     def get_covariance_matrix(
@@ -132,3 +161,5 @@ class StatisticsService:
             returns,
             weights,
         )
+    
+

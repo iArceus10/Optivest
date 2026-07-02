@@ -10,6 +10,7 @@ from app.financial_engines.portfolio_health.health import (
     _calculate_risk_score,
     _generate_recommendations,
     _generate_summary,
+    _calculate_optimization_efficiency_score,
 )
 from app.financial_engines.portfolio_health.models import (
     PortfolioHealthResult,
@@ -125,6 +126,36 @@ def test_concentration_score_thresholds(
         == expected
     )
 
+# ---------------------------------------------------------------------
+# Efficiency Score
+# ---------------------------------------------------------------------
+
+
+def test_optimization_efficiency_score_perfect() -> None:
+    score = _calculate_optimization_efficiency_score(
+        sharpe_ratio=1.50,
+        best_simulated_sharpe_ratio=1.50,
+    )
+
+    assert score == pytest.approx(100.0)
+
+
+def test_optimization_efficiency_score_half() -> None:
+    score = _calculate_optimization_efficiency_score(
+        sharpe_ratio=0.75,
+        best_simulated_sharpe_ratio=1.50,
+    )
+
+    assert score == pytest.approx(50.0)
+
+
+def test_optimization_efficiency_score_is_clamped() -> None:
+    score = _calculate_optimization_efficiency_score(
+        sharpe_ratio=2.00,
+        best_simulated_sharpe_ratio=1.50,
+    )
+
+    assert score == pytest.approx(100.0)
 
 # ---------------------------------------------------------------------
 # Summary
@@ -229,6 +260,7 @@ def test_analyze_portfolio_health_returns_domain_model() -> None:
         expected_return=0.15,
         volatility=0.18,
         sharpe_ratio=1.5,
+        best_simulated_sharpe_ratio=1.60,
         sortino_ratio=2.0,
         maximum_drawdown=0.12,
         value_at_risk=0.05,
@@ -270,6 +302,12 @@ def test_analyze_portfolio_health_returns_domain_model() -> None:
         <= result.concentration_score
         <= 100.0
     )
+    
+    assert (
+        0.0
+        <= result.optimization_efficiency_score
+        <= 100.0
+    )
 
     assert isinstance(
         result.summary,
@@ -287,6 +325,7 @@ def test_analyze_portfolio_health_is_deterministic() -> None:
         expected_return=0.12,
         volatility=0.20,
         sharpe_ratio=1.2,
+        best_simulated_sharpe_ratio=1.60,
         sortino_ratio=1.8,
         maximum_drawdown=0.18,
         value_at_risk=0.07,
@@ -310,6 +349,7 @@ def test_excellent_portfolio_scores_high() -> None:
         expected_return=0.25,
         volatility=0.12,
         sharpe_ratio=2.0,
+        best_simulated_sharpe_ratio=1.60,
         sortino_ratio=2.5,
         maximum_drawdown=0.05,
         value_at_risk=0.02,
@@ -325,6 +365,7 @@ def test_poor_portfolio_scores_low() -> None:
         expected_return=-0.05,
         volatility=0.45,
         sharpe_ratio=0.10,
+        best_simulated_sharpe_ratio=1.60,
         sortino_ratio=0.20,
         maximum_drawdown=0.45,
         value_at_risk=0.18,

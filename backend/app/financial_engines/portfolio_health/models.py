@@ -50,5 +50,6 @@ class PortfolioHealthResult:
     risk_score: float
     diversification_score: float
     concentration_score: float
+    optimization_efficiency_score: float
     summary: str
     recommendations: tuple[str, ...]

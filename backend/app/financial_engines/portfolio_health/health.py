@@ -150,6 +150,27 @@ def _calculate_concentration_score(
     return 20.0
 
 
+def _calculate_optimization_efficiency_score(
+    *,
+    sharpe_ratio: float,
+    best_simulated_sharpe_ratio: float,
+) -> float:
+    """
+    Calculate a portfolio efficiency score relative to the best
+    portfolio discovered during Monte Carlo simulation.
+    """
+
+    efficiency_ratio = min(
+        max(
+            sharpe_ratio
+            / best_simulated_sharpe_ratio,
+            0.0,
+        ),
+        1.0,
+    )
+
+    return 100.0 * efficiency_ratio
+
 def _generate_summary(
     overall_health_score: float,
 ) -> str:
@@ -224,6 +245,7 @@ def analyze_portfolio_health(
     expected_return: float,
     volatility: float,
     sharpe_ratio: float,
+    best_simulated_sharpe_ratio: float,
     sortino_ratio: float,
     maximum_drawdown: float,
     value_at_risk: float,
@@ -238,6 +260,9 @@ def analyze_portfolio_health(
         expected_return=expected_return,
         volatility=volatility,
         sharpe_ratio=sharpe_ratio,
+        best_simulated_sharpe_ratio=(
+            best_simulated_sharpe_ratio
+        ),
         sortino_ratio=sortino_ratio,
         maximum_drawdown=maximum_drawdown,
         value_at_risk=value_at_risk,
@@ -267,11 +292,21 @@ def analyze_portfolio_health(
         )
     )
 
+    optimization_efficiency_score = (
+    _calculate_optimization_efficiency_score(
+        sharpe_ratio=sharpe_ratio,
+        best_simulated_sharpe_ratio=(
+            best_simulated_sharpe_ratio
+        ),
+    )
+)
+
     overall_health_score = (
-        0.25 * return_score
-        + 0.35 * risk_score
+        0.20 * return_score
+        + 0.30 * risk_score
         + 0.20 * diversification_score
-        + 0.20 * concentration_score
+        + 0.15 * concentration_score
+        + 0.15 * optimization_efficiency_score
     )
 
     summary = _generate_summary(
@@ -293,6 +328,9 @@ def analyze_portfolio_health(
         risk_score=risk_score,
         diversification_score=diversification_score,
         concentration_score=concentration_score,
+        optimization_efficiency_score=(
+            optimization_efficiency_score
+        ),
         summary=summary,
         recommendations=recommendations,
     )

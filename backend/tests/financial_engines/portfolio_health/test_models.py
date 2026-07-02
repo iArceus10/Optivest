@@ -16,6 +16,7 @@ def test_portfolio_health_result_fields() -> None:
         risk_score=88.0,
         diversification_score=80.0,
         concentration_score=85.0,
+        optimization_efficiency_score=90.0,
         summary="Strong portfolio with manageable risk.",
         recommendations=(
             "Maintain the current portfolio strategy.",
@@ -53,6 +54,7 @@ def test_portfolio_health_result_is_immutable() -> None:
         risk_score=75.0,
         diversification_score=90.0,
         concentration_score=80.0,
+        optimization_efficiency_score=90.0,
         summary="Excellent portfolio health.",
         recommendations=(
             "Maintain the current portfolio strategy.",
