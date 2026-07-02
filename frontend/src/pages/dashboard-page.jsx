@@ -1,220 +1,120 @@
-import { ArrowRight, BriefcaseBusiness, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { BriefcaseBusiness, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import Card from "../components/common/card";
-import Button from "../components/common/button";
-
-const CAPABILITY_CARDS = [
-  {
-    title: "Portfolio management",
-    copy:
-      "Create, update, and manage multiple portfolios through the authenticated OptiVest workspace.",
-    icon: BriefcaseBusiness,
-  },
-  {
-    title: "Optimization workflows",
-    copy:
-      "Expose mean-variance, minimum variance, maximum Sharpe, and efficient frontier outputs through a portfolio-centric UI.",
-    icon: TrendingUp,
-  },
-  {
-    title: "Risk and health diagnostics",
-    copy:
-      "Review drawdown, VaR, CVaR, Sharpe, Sortino, and higher-level portfolio health scoring in one product surface.",
-    icon: ShieldCheck,
-  },
-];
+import CreatePortfolioForm from "../components/portfolio/create-portfolio-form";
+import PortfolioCard from "../components/portfolio/portfolio-card";
+import {
+  createPortfolio,
+  deletePortfolio,
+  getPortfolios,
+} from "../services/portfolio-service";
 
 function DashboardPage() {
+  const [portfolios, setPortfolios] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [isCreatingPortfolio, setIsCreatingPortfolio] = useState(false);
+  const [deletingPortfolioId, setDeletingPortfolioId] = useState(null);
+
+  useEffect(() => {
+    loadPortfolioDashboard();
+  }, []);
+
+  async function loadPortfolioDashboard() {
+    try {
+      setIsLoading(true);
+      setLoadError("");
+
+      const portfolioResponse = await getPortfolios();
+      setPortfolios(portfolioResponse);
+    } catch (error) {
+      setLoadError(
+        error.message || "Unable to load your portfolios right now."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleCreatePortfolio(payload) {
+    try {
+      setIsCreatingPortfolio(true);
+
+      const createdPortfolio = await createPortfolio(payload);
+
+      setPortfolios((previousPortfolios) => [
+        createdPortfolio,
+        ...previousPortfolios,
+      ]);
+    } finally {
+      setIsCreatingPortfolio(false);
+    }
+  }
+
+  async function handleDeletePortfolio(portfolioId) {
+    const shouldDelete = window.confirm(
+      "Delete this portfolio? This action cannot be undone."
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setDeletingPortfolioId(portfolioId);
+
+      await deletePortfolio(portfolioId);
+
+      setPortfolios((previousPortfolios) =>
+        previousPortfolios.filter(
+          (portfolio) => portfolio.id !== portfolioId
+        )
+      );
+    } catch (error) {
+      window.alert(
+        error.message || "Unable to delete portfolio right now."
+      );
+    } finally {
+      setDeletingPortfolioId(null);
+    }
+  }
+
   return (
     <div>
       <section className="page-hero">
         <div className="page-hero__content">
           <div className="page-hero__eyebrow">
             <Sparkles size={16} />
-            Phase 9 productization workspace
+            Portfolio command center
           </div>
 
           <h1 className="page-hero__title">
-            OptiVest turns a strong quant backend into a portfolio analytics product.
+            Build and manage your OptiVest portfolios.
           </h1>
 
           <p className="page-hero__copy">
-            This dashboard is the portfolio command center for OptiVest. From here,
-            users should be able to create portfolios, inspect holdings, and launch
-            optimization, simulation, risk, and health workflows without leaving
-            the portfolio context.
+            Create portfolio containers, organize investment ideas, and
+            enter the analytics workspace for optimization, simulation,
+            risk, and portfolio health workflows powered by the completed
+            backend platform.
           </p>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link to="/portfolios/demo-workspace">
-            <Button variant="primary" size="lg" style={{ width: "auto" }}>
-              Explore workspace
-            </Button>
-          </Link>
-
-          <Button variant="secondary" size="lg" style={{ width: "auto" }}>
-            Portfolio CRUD next
-          </Button>
         </div>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid" style={{ marginBottom: 24 }}>
         <div className="dashboard-grid__span-8">
-          <Card
-            title="Phase 9 implementation direction"
-            subtitle="The dashboard is intentionally portfolio-centric. Analytics should hang off a selected portfolio rather than becoming disconnected standalone calculators."
-            minHeight={280}
-          >
-            <div
-              style={{
-                display: "grid",
-                gap: 18,
-              }}
-            >
-              {[
-                "Authenticated users land in a premium dashboard rather than a plain CRUD page.",
-                "Portfolio detail pages will become the primary analytics workspace for statistics, optimization, simulation, risk, and health.",
-                "Frontend services will map one-to-one with backend capability areas to keep integration clean and interview-defensible.",
-                "Visual polish is treated as a product concern, not an afterthought, because the frontend is the presentation layer of the project.",
-              ].map((point) => (
-                <div
-                  key={point}
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    color: "var(--text-secondary)",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: "var(--accent-primary)",
-                      marginTop: 10,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span>{point}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <CreatePortfolioForm
+            onCreatePortfolio={handleCreatePortfolio}
+            isSubmitting={isCreatingPortfolio}
+          />
         </div>
 
         <div className="dashboard-grid__span-4">
           <Card
-            title="Backend status"
-            subtitle="Phase 8 backend foundation already complete."
-            minHeight={280}
-          >
-            <div
-              style={{
-                display: "grid",
-                gap: 14,
-              }}
-            >
-              {[
-                "Authentication",
-                "Portfolio CRUD",
-                "Market Data",
-                "Statistics",
-                "Optimization",
-                "Monte Carlo Simulation",
-                "Risk Analytics",
-                "Portfolio Health",
-              ].map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    padding: "12px 14px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "rgba(9, 14, 23, 0.72)",
-                  }}
-                >
-                  <span style={{ color: "var(--text-secondary)" }}>{item}</span>
-                  <span
-                    style={{
-                      color: "var(--accent-primary)",
-                      fontWeight: 700,
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    Ready
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        {CAPABILITY_CARDS.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <div key={item.title} className="dashboard-grid__span-4">
-              <Card minHeight={230}>
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    display: "grid",
-                    placeItems: "center",
-                    borderRadius: 16,
-                    background: "var(--gradient-brand-soft)",
-                    border: "1px solid rgba(34, 197, 94, 0.18)",
-                    marginBottom: 18,
-                  }}
-                >
-                  <Icon size={22} />
-                </div>
-
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: "1.06rem",
-                    fontWeight: 800,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {item.title}
-                </h3>
-
-                <p
-                  style={{
-                    margin: "12px 0 0",
-                    color: "var(--text-muted)",
-                    lineHeight: 1.7,
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  {item.copy}
-                </p>
-              </Card>
-            </div>
-          );
-        })}
-
-        <div className="dashboard-grid__full">
-          <Card
-            title="What comes next"
-            subtitle="The next implementation slice will replace dashboard placeholders with real portfolio CRUD integration and then turn the portfolio workspace into the main analytics surface."
+            title="Portfolio dashboard status"
+            subtitle="The dashboard is now wired to the real backend portfolio CRUD contract."
+            minHeight={360}
           >
             <div
               style={{
@@ -222,38 +122,189 @@ function DashboardPage() {
                 gap: 16,
               }}
             >
-              {[
-                "Wire dashboard to GET /portfolios and POST /portfolios.",
-                "Add portfolio cards, create portfolio flow, and delete actions.",
-                "Build a real portfolio detail workspace backed by portfolio lookup APIs.",
-                "Integrate statistics, risk, health, optimization, and simulation panels one by one against the existing backend.",
-              ].map((item) => (
-                <div
-                  key={item}
+              <div
+                style={{
+                  padding: "18px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-subtle)",
+                  background: "rgba(9, 14, 23, 0.72)",
+                }}
+              >
+                <p
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    padding: "16px 18px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "rgba(9, 14, 23, 0.72)",
+                    margin: 0,
+                    color: "var(--text-faint)",
+                    fontSize: "0.82rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
                   }}
                 >
-                  <span
-                    style={{
-                      color: "var(--text-secondary)",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {item}
-                  </span>
+                  Total portfolios
+                </p>
 
-                  <ArrowRight size={18} color="var(--text-faint)" />
-                </div>
-              ))}
+                <p
+                  style={{
+                    margin: "12px 0 0",
+                    fontSize: "2rem",
+                    fontWeight: 800,
+                    letterSpacing: "-0.04em",
+                  }}
+                >
+                  {portfolios.length}
+                </p>
+              </div>
+
+              <div
+                style={{
+                  padding: "18px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-subtle)",
+                  background: "rgba(9, 14, 23, 0.72)",
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    color: "var(--text-faint)",
+                    fontSize: "0.82rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Current dashboard scope
+                </p>
+
+                <p
+                  style={{
+                    margin: "12px 0 0",
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.7,
+                    fontWeight: 600,
+                  }}
+                >
+                  Portfolio metadata management, authentication, and
+                  workspace routing are live.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  padding: "18px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-subtle)",
+                  background: "rgba(9, 14, 23, 0.72)",
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    color: "var(--text-faint)",
+                    fontSize: "0.82rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Next milestone
+                </p>
+
+                <p
+                  style={{
+                    margin: "12px 0 0",
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.7,
+                    fontWeight: 600,
+                  }}
+                >
+                  Replace the portfolio workspace placeholder with real
+                  portfolio detail + analytics integrations.
+                </p>
+              </div>
             </div>
+          </Card>
+        </div>
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="dashboard-grid__full">
+          <Card
+            title="Your portfolios"
+            subtitle="Open any portfolio to move into the analytics workspace."
+          >
+            {isLoading ? (
+              <div
+                style={{
+                  minHeight: 220,
+                  display: "grid",
+                  placeItems: "center",
+                  color: "var(--text-muted)",
+                  textAlign: "center",
+                  lineHeight: 1.7,
+                }}
+              >
+                Loading your portfolios…
+              </div>
+            ) : loadError ? (
+              <div
+                style={{
+                  minHeight: 220,
+                  display: "grid",
+                  placeItems: "center",
+                  padding: 24,
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid rgba(239, 68, 68, 0.24)",
+                  background: "rgba(127, 29, 29, 0.12)",
+                  color: "#fecaca",
+                  textAlign: "center",
+                  lineHeight: 1.7,
+                }}
+              >
+                {loadError}
+              </div>
+            ) : portfolios.length === 0 ? (
+              <div
+                style={{
+                  minHeight: 220,
+                  display: "grid",
+                  placeItems: "center",
+                  padding: 24,
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px dashed var(--border-strong)",
+                  background: "rgba(9, 14, 23, 0.52)",
+                  color: "var(--text-muted)",
+                  textAlign: "center",
+                  lineHeight: 1.8,
+                }}
+              >
+                <div>
+                  <BriefcaseBusiness
+                    size={32}
+                    style={{ marginBottom: 12 }}
+                  />
+                  <div style={{ fontWeight: 700, color: "var(--text-secondary)" }}>
+                    No portfolios yet
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    Create your first portfolio from the panel above to start
+                    using the OptiVest analytics workspace.
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dashboard-grid">
+                {portfolios.map((portfolio) => (
+                  <div
+                    key={portfolio.id}
+                    className="dashboard-grid__span-4"
+                  >
+                    <PortfolioCard
+                      portfolio={portfolio}
+                      onDeletePortfolio={handleDeletePortfolio}
+                      isDeleting={deletingPortfolioId === portfolio.id}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
       </section>

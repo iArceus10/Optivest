@@ -51,10 +51,9 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar__footer">
-        <p className="sidebar__footer-label">Version 1 philosophy</p>
+        <p className="sidebar__footer-label">Version 1</p>
         <p className="sidebar__footer-value">
-          Minimal repository. Strong quant backend. Clean portfolio analytics
-          productization.
+          Clean portfolio analytics productization.
         </p>
       </div>
     </div>
