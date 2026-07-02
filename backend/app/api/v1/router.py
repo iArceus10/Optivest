@@ -16,6 +16,9 @@ from app.api.v1.simulation import (
 from app.api.v1.risk import (
     router as risk_router,
 )
+from app.api.v1.portfolio_health import (
+    router as portfolio_health_router,
+)
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -33,4 +36,7 @@ api_router.include_router(
 )
 api_router.include_router(
     risk_router,
+)
+api_router.include_router(
+    portfolio_health_router
 )
