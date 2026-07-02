@@ -607,20 +607,187 @@ Business orchestration belongs to Services while financial computation
 remains isolated within Financial Engines, preserving the Layered
 Modular Monolith architecture.
 
+# Decision 043 — Portfolio Health Reuses Existing Financial Engines
+
+The Portfolio Health module is an aggregation layer built on top of
+existing repository capabilities.
+
+Portfolio health analysis reuses:
+
+- Statistics outputs
+- Risk Analytics outputs
+- Monte Carlo Simulation outputs
+
+The Portfolio Health Financial Engine does not fetch market data and does
+not independently recompute portfolio risk analytics or simulation
+results.
+
+### Reason
+
+Portfolio health is a higher-level diagnostic built from existing
+portfolio return, risk, and simulation signals.
+
+Reusing established Financial Engines avoids duplicated financial logic,
+preserves deterministic behaviour, and keeps ownership of mathematical
+responsibilities in the modules that already define them.
+
+---
+
+# Decision 044 — Portfolio Health Financial Engine Owns Only Health Scoring Logic
+
+The Portfolio Health Financial Engine owns only the deterministic logic
+required to convert prepared portfolio analytics inputs into health
+diagnostics.
+
+Its responsibilities include:
+
+- validation of health engine inputs
+- return scoring
+- risk scoring
+- diversification scoring
+- concentration scoring
+- optimization efficiency scoring
+- summary generation
+- recommendation generation
+
+It does not perform market data retrieval, portfolio return estimation,
+risk metric computation, or Monte Carlo simulation.
+
+### Reason
+
+Portfolio Health is a composite analytics layer rather than a new source
+of base financial calculations.
+
+Keeping the engine focused on health scoring preserves clean
+responsibility boundaries and avoids mathematical duplication across
+Financial Engines.
+
+---
+
+# Decision 045 — Portfolio Health Service Orchestrates Cross-Engine Inputs
+
+PortfolioHealthService is responsible for orchestrating the inputs
+required by the Portfolio Health Financial Engine.
+
+It coordinates:
+
+- StatisticsService for portfolio expected return and volatility
+- RiskAnalyticsService for risk metrics
+- SimulationService for best simulated Sharpe ratio
+
+PortfolioHealthService performs orchestration and business validation but
+does not implement portfolio health mathematics directly.
+
+### Reason
+
+Portfolio Health depends on multiple previously completed application
+capabilities.
+
+The Service layer is the correct place to coordinate cross-engine
+workflows while preserving the framework independence of the Financial
+Engine.
+
+---
+
+# Decision 046 — Portfolio Health Optimization Efficiency Uses Monte Carlo Best Sharpe
+
+Portfolio Health evaluates optimization efficiency by comparing the
+current portfolio Sharpe ratio against the best Sharpe ratio discovered
+during Monte Carlo simulation over the same asset universe and date
+range.
+
+This metric is exposed as `optimization_efficiency_score`.
+
+### Reason
+
+A portfolio health layer should evaluate not only raw return and risk,
+but also how efficiently the current allocation uses the opportunity set
+available within the analyzed assets.
+
+Using the best simulated Sharpe ratio creates a deterministic,
+interview-defensible benchmark while reusing the Monte Carlo Simulation
+Engine already present in the repository.
+
+---
+
+# Decision 047 — Portfolio Health Uses a Unified Domain Result
+
+Portfolio health analysis returns a single immutable domain model,
+`PortfolioHealthResult`, that contains all health diagnostics exposed by
+the module.
+
+The model includes:
+
+- overall health score
+- return score
+- risk score
+- diversification score
+- concentration score
+- optimization efficiency score
+- summary
+- recommendations
+
+### Reason
+
+A unified immutable result provides a stable contract between the
+Financial Engine, Service layer, and API layer.
+
+It also prevents callers from orchestrating health subcomponents
+manually and keeps the public interface concise.
+
+---
+
+# Decision 048 — StatisticsService Owns Portfolio Expected Return Aggregation
+
+Portfolio expected return aggregation is exposed through
+`StatisticsService.get_portfolio_expected_return(...)`.
+
+PortfolioHealthService reuses this StatisticsService method rather than
+performing expected-return dot-product aggregation itself.
+
+### Reason
+
+Portfolio expected return is a statistics concern.
+
+Keeping this aggregation inside the Statistics application layer
+preserves module ownership, avoids service-level duplication, and keeps
+PortfolioHealthService focused on orchestration rather than portfolio
+statistics computation.
+
+---
+
+# Decision 049 — Portfolio Health API Responsibilities
+
+Portfolio Health endpoints perform only:
+
+- request validation
+- Service delegation
+- response serialization
+- exception translation
+
+The API layer does not compute portfolio health metrics.
+
+### Reason
+
+Portfolio Health follows the same thin-API discipline used throughout
+the repository.
+
+This preserves the Layered Modular Monolith architecture and keeps
+transport logic separate from business and financial logic.
+
+# Future Decisions
+
 # Future Decisions
 
 Future phases will extend this document with additional decisions for:
 
-- Monte Carlo Simulation
-- Risk Analytics
-- Portfolio Health
 - React Frontend
 - Production Deployment
 
 New decisions should be appended rather than modifying historical
 entries unless a previous decision has become technically incorrect.
 
----
+.....
 
 # Summary
 
@@ -642,10 +809,10 @@ justified before implementation.
 
 **Version:** 1.0
 
-**Repository Status:** Phase 5 Complete
+**Repository Status:** Phase 8 Complete
 
-**Current Test Status:** 117 Passing
+**Current Test Status:** 253 Passing
 
-**Engineering Decisions:** 32
+**Engineering Decisions:** 49
 
-**Next Planned Phase:** Phase 6 – Monte Carlo Simulation
+**Next Planned Phase:** Phase 9 – Frontend and Productization
