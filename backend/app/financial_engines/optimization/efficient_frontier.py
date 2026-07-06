@@ -22,6 +22,52 @@ from .validation import validate_optimization_inputs
 
 
 DEFAULT_FRONTIER_POINTS = 50
+WEIGHT_TOLERANCE = 1e-8
+
+
+def _sanitize_long_only_weights(
+    weights: np.ndarray,
+    *,
+    tolerance: float = WEIGHT_TOLERANCE,
+) -> np.ndarray:
+    """
+    Clean solver-produced portfolio weights for long-only portfolios.
+
+    CVXPY can return extremely small negative values (for example -1e-9)
+    even when long-only constraints are imposed. Those values are numerical
+    artifacts rather than economically meaningful short positions.
+
+    This helper:
+    1. clips tiny negative values to zero,
+    2. raises if a materially negative weight is encountered,
+    3. renormalizes weights so the final portfolio remains fully invested.
+    """
+
+    cleaned_weights = np.asarray(
+        weights,
+        dtype=float,
+    ).copy()
+
+    for index, weight in enumerate(cleaned_weights):
+        if weight < 0:
+            if abs(weight) <= tolerance:
+                cleaned_weights[index] = 0.0
+            else:
+                raise ValueError(
+                    "Efficient Frontier optimization produced a materially "
+                    f"negative long-only weight: {weight}"
+                )
+
+    total_weight = float(cleaned_weights.sum())
+
+    if np.isclose(total_weight, 0.0):
+        raise ValueError(
+            "Efficient Frontier optimization produced zero total weight."
+        )
+
+    cleaned_weights = cleaned_weights / total_weight
+
+    return cleaned_weights
 
 
 def _compute_frontier_point(
@@ -38,12 +84,9 @@ def _compute_frontier_point(
     asset_index = expected_returns.index.copy()
 
     expected_return_vector = expected_returns.to_numpy()
-
     covariance = covariance_matrix.to_numpy()
 
-    weights = create_weight_variable(
-        len(expected_returns)
-    )
+    weights = create_weight_variable(len(expected_returns))
 
     objective = cp.Minimize(
         cp.quad_form(
@@ -62,6 +105,10 @@ def _compute_frontier_point(
         weights,
         objective,
         constraints,
+    )
+
+    optimal_weights = _sanitize_long_only_weights(
+        optimal_weights
     )
 
     portfolio_return = float(
@@ -131,13 +178,8 @@ def generate_efficient_frontier(
             "Number of frontier points must be positive."
         )
 
-    minimum_return = float(
-        expected_returns.min()
-    )
-
-    maximum_return = float(
-        expected_returns.max()
-    )
+    minimum_return = float(expected_returns.min())
+    maximum_return = float(expected_returns.max())
 
     if np.isclose(
         minimum_return,
@@ -157,18 +199,14 @@ def generate_efficient_frontier(
         num_points,
     )
 
-    frontier: list[
-        EfficientFrontierPoint
-    ] = []
+    frontier: list[EfficientFrontierPoint] = []
 
     for target_return in target_returns:
         frontier.append(
             _compute_frontier_point(
                 expected_returns,
                 covariance_matrix,
-                target_return=float(
-                    target_return
-                ),
+                target_return=float(target_return),
             )
         )
 
