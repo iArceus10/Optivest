@@ -16,6 +16,9 @@ from app.services.simulation_service import (
 from app.services.statistics_service import (
     StatisticsService,
 )
+from app.services.market_data_service import (
+    MarketDataService,
+)
 
 
 class _PortfolioHealthInputs(NamedTuple):
@@ -76,45 +79,43 @@ class PortfolioHealthService:
                 "Number of weights must match number of tickers."
             )
 
+        daily_returns = MarketDataService.get_daily_returns(
+            tickers=tickers,
+            start=start,
+            end=end,
+        )
+
         portfolio_expected_return = (
-            StatisticsService.get_portfolio_expected_return(
-                tickers=tickers,
-                weights=weights,
-                start=start,
-                end=end,
+            StatisticsService.get_portfolio_expected_return_from_returns(
+                daily_returns,
+                weights,
             )
         )
 
         portfolio_volatility = (
-            StatisticsService.get_portfolio_volatility(
-                tickers=tickers,
-                weights=weights,
-                start=start,
-                end=end,
+            StatisticsService.get_portfolio_volatility_from_returns(
+                daily_returns,
+                weights,
             )
         )
 
         risk_result = (
-            RiskAnalyticsService.analyze_portfolio_risk(
-                tickers=tickers,
-                weights=weights,
-                start=start,
-                end=end,
+            RiskAnalyticsService.analyze_portfolio_risk_from_returns(
+                daily_returns,
+                weights,
                 risk_free_rate=risk_free_rate,
             )
         )
 
         simulation_result = (
-            SimulationService.run_simulation(
-                tickers=tickers,
-                start=start,
-                end=end,
+            SimulationService.run_simulation_from_returns(
+                daily_returns,
                 simulation_count=simulation_count,
                 risk_free_rate=risk_free_rate,
                 seed=seed,
             )
         )
-
+        
         return _PortfolioHealthInputs(
             expected_return=portfolio_expected_return,
             volatility=portfolio_volatility,

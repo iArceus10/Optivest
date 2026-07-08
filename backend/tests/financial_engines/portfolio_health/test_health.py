@@ -26,10 +26,10 @@ from app.financial_engines.portfolio_health.models import (
     ("expected_return", "expected_score"),
     [
         (0.25, 100.0),
-        (0.17, 85.0),
-        (0.12, 70.0),
-        (0.06, 50.0),
-        (0.03, 30.0),
+        (0.17, 100.0),
+        (0.12, 84.0),
+        (0.06, 52.0),
+        (0.03, 36.0),
         (-0.01, 0.0),
     ],
 )
@@ -38,9 +38,7 @@ def test_return_score_thresholds(
     expected_score: float,
 ) -> None:
     assert (
-        _calculate_return_score(
-            expected_return
-        )
+        _calculate_return_score(expected_return)
         == expected_score
     )
 
@@ -55,16 +53,17 @@ def test_risk_score_high_quality_portfolio() -> None:
         sharpe_ratio=2.0,
         maximum_drawdown=0.05,
         value_at_risk=0.02,
+        max_weight=0.33,
     )
 
-    assert score > 80.0
-
+    assert score > 70.0
 
 def test_risk_score_low_quality_portfolio() -> None:
     score = _calculate_risk_score(
         sharpe_ratio=0.10,
         maximum_drawdown=0.45,
         value_at_risk=0.18,
+        max_weight=0.90,
     )
 
     assert score < 30.0
@@ -75,6 +74,7 @@ def test_risk_score_within_bounds() -> None:
         sharpe_ratio=100.0,
         maximum_drawdown=0.0,
         value_at_risk=0.0,
+        max_weight=0.25,
     )
 
     assert 0.0 <= score <= 100.0

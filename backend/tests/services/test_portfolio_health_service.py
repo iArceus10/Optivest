@@ -70,32 +70,52 @@ def portfolio_health_result() -> PortfolioHealthResult:
     )
 
 
+
 def test_prepare_portfolio_health_inputs(
     risk_result: RiskAnalyticsResult,
     simulation_result: MonteCarloSimulationResult,
 ) -> None:
+    # 1. Set up the mock input data
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02, -0.01],
+            "MSFT": [0.005, 0.015, -0.002],
+        }
+    )
+
+    # 2. Patch the data fetching and the updated calculation services
     with (
         patch(
             "app.services.portfolio_health_service."
-            "StatisticsService.get_portfolio_expected_return",
+            "MarketDataService.get_daily_returns",
+            return_value=returns,
+        ) as returns_mock,
+        patch(
+            "app.services.portfolio_health_service."
+            "StatisticsService."
+            "get_portfolio_expected_return_from_returns",
             return_value=0.14,
-        ),
+        ) as expected_return_mock,
         patch(
             "app.services.portfolio_health_service."
-            "StatisticsService.get_portfolio_volatility",
+            "StatisticsService."
+            "get_portfolio_volatility_from_returns",
             return_value=0.18,
-        ),
+        ) as volatility_mock,
         patch(
             "app.services.portfolio_health_service."
-            "RiskAnalyticsService.analyze_portfolio_risk",
+            "RiskAnalyticsService."
+            "analyze_portfolio_risk_from_returns",
             return_value=risk_result,
-        ),
+        ) as risk_mock,
         patch(
             "app.services.portfolio_health_service."
-            "SimulationService.run_simulation",
+            "SimulationService."
+            "run_simulation_from_returns",
             return_value=simulation_result,
-        ),
+        ) as simulation_mock,
     ):
+        # 3. Execute the service method under test
         result = (
             PortfolioHealthService._prepare_portfolio_health_inputs(
                 ["AAPL", "MSFT"],
@@ -108,6 +128,34 @@ def test_prepare_portfolio_health_inputs(
             )
         )
 
+    # 4. Behavioral Assertions (Verifying correct internal calls and parameters)
+    returns_mock.assert_called_once_with(
+        tickers=["AAPL", "MSFT"],
+        start=date(2024, 1, 1),
+        end=date(2024, 12, 31),
+    )
+
+    expected_return_mock.assert_called_once_with(
+        returns,
+        [0.4, 0.6],
+    )
+    volatility_mock.assert_called_once_with(
+        returns,
+        [0.4, 0.6],
+    )
+    risk_mock.assert_called_once_with(
+        returns,
+        [0.4, 0.6],
+        risk_free_rate=0.03,
+    )
+    simulation_mock.assert_called_once_with(
+        returns,
+        simulation_count=5000,
+        risk_free_rate=0.03,
+        seed=42,
+    )
+
+    # 5. State Assertion (Verifying final output object matches expected metrics)
     assert result == _PortfolioHealthInputs(
         expected_return=0.14,
         volatility=0.18,

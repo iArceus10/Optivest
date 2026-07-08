@@ -2,24 +2,24 @@ import Button from "../common/button";
 import Card from "../common/card";
 import Input from "../common/input";
 
-function RiskControlsCard({
+function HealthControlsCard({
   tickers,
   values,
   onChange,
   onAnalyze,
   isLoading = false,
 }) {
-  const weights = Array.isArray(values?.weights) ? values.weights : [];
+  const weights = Array.isArray(values.weights) ? values.weights : [];
 
-  const totalWeight = weights.reduce((sum, weight) => {
-    const numericWeight = Number(weight);
-    return sum + (Number.isFinite(numericWeight) ? numericWeight : 0);
-  }, 0);
+  const totalWeight = weights.reduce(
+    (sum, weight) => sum + (Number.isFinite(Number(weight)) ? Number(weight) : 0),
+    0
+  );
 
   return (
     <Card
-      title="Risk analytics controls"
-      subtitle="Configure portfolio weights and downside-risk assumptions for the selected analysis universe."
+      title="Portfolio health controls"
+      subtitle="Configure the portfolio weights and simulation settings used by the health analytics backend."
     >
       <div
         style={{
@@ -101,22 +101,28 @@ function RiskControlsCard({
             type="number"
             min="0"
             step="0.005"
-            value={values?.riskFreeRate ?? 0.02}
+            value={values.riskFreeRate}
             onChange={(event) =>
               onChange("riskFreeRate", Number(event.target.value))
             }
           />
 
           <Input
-            label="Confidence level"
+            label="Simulation count"
             type="number"
-            min="0.5"
-            max="0.999"
-            step="0.01"
-            value={values?.confidenceLevel ?? 0.95}
+            min="500"
+            step="100"
+            value={values.simulationCount}
             onChange={(event) =>
-              onChange("confidenceLevel", Number(event.target.value))
+              onChange("simulationCount", Number(event.target.value))
             }
+          />
+
+          <Input
+            label="Seed (optional)"
+            type="number"
+            value={values.seed}
+            onChange={(event) => onChange("seed", event.target.value)}
           />
         </div>
 
@@ -132,7 +138,7 @@ function RiskControlsCard({
             onClick={onAnalyze}
             isLoading={isLoading}
           >
-            Run risk analytics
+            Analyze portfolio health
           </Button>
         </div>
       </div>
@@ -140,4 +146,4 @@ function RiskControlsCard({
   );
 }
 
-export default RiskControlsCard;
+export default HealthControlsCard;

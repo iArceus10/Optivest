@@ -22,7 +22,7 @@ from .validation import validate_optimization_inputs
 
 
 DEFAULT_FRONTIER_POINTS = 50
-WEIGHT_TOLERANCE = 1e-8
+WEIGHT_TOLERANCE = 1e-6
 
 
 def _sanitize_long_only_weights(
@@ -33,8 +33,8 @@ def _sanitize_long_only_weights(
     """
     Clean solver-produced portfolio weights for long-only portfolios.
 
-    CVXPY can return extremely small negative values (for example -1e-9)
-    even when long-only constraints are imposed. Those values are numerical
+    CVXPY can return extremely small negative values (for example
+    -1e-7 or -1e-9) even when long-only constraints are imposed. Those values are numerical
     artifacts rather than economically meaningful short positions.
 
     This helper:

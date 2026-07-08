@@ -26,60 +26,74 @@ def _calculate_return_score(
 ) -> float:
     """
     Calculate a return score on a 0–100 scale.
+
+    Calibration:
+    - 0% annual expected return -> 20
+    - 8% annual expected return -> 60
+    - 15% annual expected return -> 100
+    - negative expected returns -> 0
     """
 
-    if expected_return >= 0.20:
-        return 100.0
+    if expected_return <= 0.0:
+        return 0.0
 
-    if expected_return >= 0.15:
-        return 85.0
+    score = 20.0 + (expected_return / 0.15) * 80.0
 
-    if expected_return >= 0.10:
-        return 70.0
-
-    if expected_return >= 0.05:
-        return 50.0
-
-    if expected_return >= 0.00:
-        return 30.0
-
-    return 0.0
-
+    return max(
+        0.0,
+        min(score, 100.0),
+    )
 
 def _calculate_risk_score(
     *,
     sharpe_ratio: float,
     maximum_drawdown: float,
     value_at_risk: float,
+    max_weight: float,
 ) -> float:
     """
     Calculate a composite portfolio risk score.
 
-    Higher Sharpe Ratios improve the score while larger drawdowns and
-    Value-at-Risk reduce it.
+    The score blends:
+    - time-series risk quality (Sharpe, drawdown, VaR)
+    - a concentration-aware penalty for excessive single-name exposure
+
+    Calibration philosophy:
+    - Sharpe ratio >= 1.5 is excellent
+    - Maximum drawdown >= 30% should be heavily penalized
+    - Daily VaR >= 5% should be heavily penalized
+    - Largest portfolio weight >= 60% should reduce the score materially
     """
 
     sharpe_component = min(
-        max(sharpe_ratio / 2.0, 0.0),
+        max(sharpe_ratio / 1.5, 0.0),
         1.0,
     )
 
     drawdown_penalty = min(
-        maximum_drawdown / 0.50,
+        max(maximum_drawdown / 0.30, 0.0),
         1.0,
     )
 
     var_penalty = min(
-        value_at_risk / 0.20,
+        max(value_at_risk / 0.05, 0.0),
         1.0,
     )
+
+    if max_weight <= 0.30:
+        concentration_penalty = 0.0
+    elif max_weight >= 0.80:
+        concentration_penalty = 1.0
+    else:
+        concentration_penalty = (max_weight - 0.30) / 0.50
 
     score = (
         100.0
         * (
-            0.50 * sharpe_component
+            0.40 * sharpe_component
             + 0.30 * (1.0 - drawdown_penalty)
-            + 0.20 * (1.0 - var_penalty)
+            + 0.15 * (1.0 - var_penalty)
+            + 0.15 * (1.0 - concentration_penalty)
         )
     )
 
@@ -87,7 +101,6 @@ def _calculate_risk_score(
         0.0,
         min(score, 100.0),
     )
-
 
 def _calculate_diversification_score(
     weights: list[float],
@@ -158,18 +171,21 @@ def _calculate_optimization_efficiency_score(
     """
     Calculate a portfolio efficiency score relative to the best
     portfolio discovered during Monte Carlo simulation.
+
+    The score is intentionally conservative:
+    - if the simulated benchmark Sharpe is non-positive, return 0
+    - cap the score to [0, 100]
     """
 
-    efficiency_ratio = min(
-        max(
-            sharpe_ratio
-            / best_simulated_sharpe_ratio,
-            0.0,
-        ),
-        1.0,
-    )
+    if best_simulated_sharpe_ratio <= 0.0:
+        return 0.0
 
-    return 100.0 * efficiency_ratio
+    efficiency_ratio = sharpe_ratio / best_simulated_sharpe_ratio
+
+    return max(
+        0.0,
+        min(100.0 * efficiency_ratio, 100.0),
+    )
 
 def _generate_summary(
     overall_health_score: float,
@@ -275,10 +291,11 @@ def analyze_portfolio_health(
     )
 
     risk_score = _calculate_risk_score(
-        sharpe_ratio=sharpe_ratio,
-        maximum_drawdown=maximum_drawdown,
-        value_at_risk=value_at_risk,
-    )
+    sharpe_ratio=sharpe_ratio,
+    maximum_drawdown=maximum_drawdown,
+    value_at_risk=value_at_risk,
+    max_weight=max(weights),
+)
 
     diversification_score = (
         _calculate_diversification_score(
@@ -302,11 +319,11 @@ def analyze_portfolio_health(
 )
 
     overall_health_score = (
-        0.20 * return_score
-        + 0.30 * risk_score
-        + 0.20 * diversification_score
-        + 0.15 * concentration_score
-        + 0.15 * optimization_efficiency_score
+    0.20 * return_score
+    + 0.35 * risk_score
+    + 0.20 * diversification_score
+    + 0.10 * concentration_score
+    + 0.15 * optimization_efficiency_score
     )
 
     summary = _generate_summary(

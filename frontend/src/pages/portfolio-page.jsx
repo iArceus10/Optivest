@@ -1,5 +1,5 @@
 import { Target } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Card from "../components/common/card";
@@ -9,8 +9,10 @@ import AnalyticsModuleCard from "../components/portfolio/analytics-module-card";
 import AnalyticsTabs from "../components/portfolio/analytics-tabs";
 import DataPreviewTable from "../components/portfolio/data-preview-table";
 import EfficientFrontierChart from "../components/portfolio/efficient-frontier-chart";
+import HealthControlsCard from "../components/portfolio/health-controls-card";
 import OptimizationControlsCard from "../components/portfolio/optimization-controls-card";
 import OptimizedAllocationTable from "../components/portfolio/optimized-allocation-table";
+import PortfolioHealthSummaryCard from "../components/portfolio/portfolio-health-summary-card";
 import PortfolioOverviewCard from "../components/portfolio/portfolio-overview-card";
 import RiskControlsCard from "../components/portfolio/risk-controls-card";
 import RiskMetricCard from "../components/portfolio/risk-metric-card";
@@ -29,6 +31,7 @@ import {
   runMeanVarianceOptimization,
   runMinimumVarianceOptimization,
 } from "../services/optimization-service";
+import { analyzePortfolioHealth } from "../services/portfolio-health-service";
 import { getPortfolioById } from "../services/portfolio-service";
 import { analyzePortfolioRisk } from "../services/risk-service";
 import { runMonteCarloSimulation } from "../services/simulation-service";
@@ -47,11 +50,17 @@ const ANALYTICS_TABS = [
   { id: "health", label: "Health" },
 ];
 
+const DEFAULT_ANALYSIS_UNIVERSE = Object.freeze({
+  tickers: ["AAPL", "MSFT", "NVDA"],
+  start: "2024-01-01",
+  end: "2025-01-01",
+});
+
 function getDefaultAnalysisUniverse() {
   return {
-    tickers: ["AAPL", "MSFT", "NVDA"],
-    start: "2024-01-01",
-    end: "2025-01-01",
+    tickers: [...DEFAULT_ANALYSIS_UNIVERSE.tickers],
+    start: DEFAULT_ANALYSIS_UNIVERSE.start,
+    end: DEFAULT_ANALYSIS_UNIVERSE.end,
   };
 }
 
@@ -60,12 +69,68 @@ function createEqualWeights(count) {
     return [];
   }
 
-  const weight = Number((1 / count).toFixed(4));
-  return Array.from({ length: count }, () => weight);
+  const rawWeight = 1 / count;
+
+  return Array.from({ length: count }, (_, index) => {
+    if (index === count - 1) {
+      const used = rawWeight * (count - 1);
+      return Number((1 - used).toFixed(6));
+    }
+
+    return Number(rawWeight.toFixed(6));
+  });
+}
+
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function normalizeTickerList(rawTickers) {
+  if (Array.isArray(rawTickers)) {
+    return rawTickers
+      .map((ticker) => String(ticker ?? "").trim().toUpperCase())
+      .filter(Boolean);
+  }
+
+  if (typeof rawTickers === "string") {
+    return rawTickers
+      .split(",")
+      .map((ticker) => ticker.trim().toUpperCase())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function extractPortfolioTickers(portfolio) {
+  const holdings = Array.isArray(portfolio?.holdings) ? portfolio.holdings : [];
+
+  const tickers = holdings
+    .map((holding) => {
+      if (typeof holding?.ticker === "string") {
+        return holding.ticker;
+      }
+
+      if (typeof holding?.symbol === "string") {
+        return holding.symbol;
+      }
+
+      if (typeof holding?.asset_ticker === "string") {
+        return holding.asset_ticker;
+      }
+
+      return "";
+    })
+    .map((ticker) => ticker.trim().toUpperCase())
+    .filter(Boolean);
+
+  return [...new Set(tickers)];
 }
 
 function createMatrixRows(matrix) {
   const tickers = Object.keys(matrix ?? {});
+
   return tickers.map((ticker) => ({
     id: ticker,
     asset: ticker,
@@ -75,6 +140,7 @@ function createMatrixRows(matrix) {
 
 function createMatrixColumns(matrix) {
   const tickers = Object.keys(matrix ?? {});
+
   return [
     { key: "asset", label: "Asset" },
     ...tickers.map((ticker) => ({
@@ -102,6 +168,7 @@ function createPriceRows(response) {
 
 function createPriceColumns(response) {
   const tickers = response?.tickers ?? [];
+
   return [
     { key: "date", label: "Date" },
     ...tickers.map((ticker) => ({
@@ -117,7 +184,7 @@ function createFrontierRows(frontier = []) {
     portfolio: `Point ${index + 1}`,
     expected_return: point.expected_return,
     volatility: point.volatility,
-    allocations: point.allocations
+    allocations: (point.allocations ?? [])
       .map(
         (allocation) =>
           `${allocation.ticker}: ${(allocation.weight * 100).toFixed(1)}%`
@@ -138,6 +205,27 @@ function getSectionStatus({ data, error }) {
   return "idle";
 }
 
+function renderErrorBanner(message) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        padding: "14px 16px",
+        borderRadius: "var(--radius-sm)",
+        border: "1px solid rgba(239, 68, 68, 0.24)",
+        background: "rgba(127, 29, 29, 0.12)",
+        color: "#fecaca",
+        lineHeight: 1.7,
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
 function PortfolioPage() {
   const { portfolioId } = useParams();
 
@@ -150,6 +238,8 @@ function PortfolioPage() {
   );
   const [activeTab, setActiveTab] = useState("market-data");
   const [isApplyingUniverse, setIsApplyingUniverse] = useState(false);
+
+  const didHydrateUniverseFromPortfolio = useRef(false);
 
   const [openSections, setOpenSections] = useState({
     historicalPrices: true,
@@ -204,8 +294,7 @@ function PortfolioPage() {
   const [maximumSharpeError, setMaximumSharpeError] = useState("");
   const [isLoadingMaximumSharpe, setIsLoadingMaximumSharpe] = useState(false);
 
-  const [efficientFrontierResult, setEfficientFrontierResult] =
-    useState(null);
+  const [efficientFrontierResult, setEfficientFrontierResult] = useState(null);
   const [efficientFrontierError, setEfficientFrontierError] = useState("");
   const [isLoadingEfficientFrontier, setIsLoadingEfficientFrontier] =
     useState(false);
@@ -228,11 +317,55 @@ function PortfolioPage() {
   const [simulationError, setSimulationError] = useState("");
   const [isLoadingSimulation, setIsLoadingSimulation] = useState(false);
 
+  const [healthInputs, setHealthInputs] = useState({
+    weights: createEqualWeights(getDefaultAnalysisUniverse().tickers.length),
+    riskFreeRate: 0.02,
+    simulationCount: 2500,
+    seed: "",
+  });
+  const [portfolioHealthResult, setPortfolioHealthResult] = useState(null);
+  const [portfolioHealthError, setPortfolioHealthError] = useState("");
+  const [isLoadingPortfolioHealth, setIsLoadingPortfolioHealth] =
+    useState(false);
+
+  function resetAnalyticsState() {
+    setHistoricalPricesResult(null);
+    setHistoricalPricesError("");
+    setDailyReturnsResult(null);
+    setDailyReturnsError("");
+    setExpectedReturnsResult(null);
+    setExpectedReturnsError("");
+    setCovarianceResult(null);
+    setCovarianceError("");
+    setCorrelationResult(null);
+    setCorrelationError("");
+
+    setMeanVarianceResult(null);
+    setMeanVarianceError("");
+    setMinimumVarianceResult(null);
+    setMinimumVarianceError("");
+    setMaximumSharpeResult(null);
+    setMaximumSharpeError("");
+    setEfficientFrontierResult(null);
+    setEfficientFrontierError("");
+
+    setRiskAnalyticsResult(null);
+    setRiskAnalyticsError("");
+
+    setSimulationResult(null);
+    setSimulationError("");
+
+    setPortfolioHealthResult(null);
+    setPortfolioHealthError("");
+  }
+
   useEffect(() => {
     async function loadPortfolio() {
       try {
         setIsLoadingPortfolio(true);
         setPortfolioError("");
+        didHydrateUniverseFromPortfolio.current = false;
+
         const response = await getPortfolioById(portfolioId);
         setPortfolio(response);
       } catch (error) {
@@ -248,22 +381,38 @@ function PortfolioPage() {
   }, [portfolioId]);
 
   useEffect(() => {
-    setRiskInputs((previous) => {
-      const targetLength = analysisUniverse.tickers.length;
-      const previousWeights = Array.isArray(previous.weights)
-        ? previous.weights
-        : [];
+    if (!portfolio || didHydrateUniverseFromPortfolio.current) {
+      return;
+    }
 
-      if (previousWeights.length === targetLength) {
-        return previous;
-      }
+    const portfolioTickers = extractPortfolioTickers(portfolio);
 
-      return {
-        ...previous,
-        weights: createEqualWeights(targetLength),
-      };
-    });
-  }, [analysisUniverse]);
+    setAnalysisUniverse((previous) => ({
+      tickers:
+        portfolioTickers.length > 0
+          ? portfolioTickers
+          : [...DEFAULT_ANALYSIS_UNIVERSE.tickers],
+      start: previous?.start || DEFAULT_ANALYSIS_UNIVERSE.start,
+      end: previous?.end || DEFAULT_ANALYSIS_UNIVERSE.end,
+    }));
+
+    resetAnalyticsState();
+    didHydrateUniverseFromPortfolio.current = true;
+  }, [portfolio]);
+
+  useEffect(() => {
+    const targetLength = analysisUniverse.tickers.length;
+
+    setRiskInputs((previous) => ({
+      ...previous,
+      weights: createEqualWeights(targetLength),
+    }));
+
+    setHealthInputs((previous) => ({
+      ...previous,
+      weights: createEqualWeights(targetLength),
+    }));
+  }, [analysisUniverse.tickers]);
 
   function toggleSection(sectionKey) {
     setOpenSections((previous) => ({
@@ -272,29 +421,42 @@ function PortfolioPage() {
     }));
   }
 
-  function handleApplyAnalysisUniverse(nextUniverse) {
+  async function handleApplyAnalysisUniverse(nextUniverse) {
     setIsApplyingUniverse(true);
 
-    const parsedTickers = nextUniverse.tickers
-      .split(",")
-      .map((ticker) => ticker.trim().toUpperCase())
-      .filter(Boolean);
+    try {
+      const parsedTickers = normalizeTickerList(nextUniverse?.tickers);
+      const nextTickers = parsedTickers.length
+        ? parsedTickers
+        : [...DEFAULT_ANALYSIS_UNIVERSE.tickers];
 
-    setAnalysisUniverse({
-      tickers: parsedTickers.length ? parsedTickers : ["AAPL", "MSFT", "NVDA"],
-      start: nextUniverse.start,
-      end: nextUniverse.end,
-    });
+      const nextStart =
+        typeof nextUniverse?.start === "string" && nextUniverse.start.trim()
+          ? nextUniverse.start
+          : analysisUniverse.start;
 
-    setTimeout(() => {
+      const nextEnd =
+        typeof nextUniverse?.end === "string" && nextUniverse.end.trim()
+          ? nextUniverse.end
+          : analysisUniverse.end;
+
+      setAnalysisUniverse({
+        tickers: nextTickers,
+        start: nextStart,
+        end: nextEnd,
+      });
+
+      resetAnalyticsState();
+      setActiveTab("market-data");
+    } finally {
       setIsApplyingUniverse(false);
-    }, 300);
+    }
   }
 
   function handleOptimizationInputChange(key, value) {
     setOptimizationInputs((previous) => ({
       ...previous,
-      [key]: value,
+      [key]: toNumber(value, previous[key]),
     }));
   }
 
@@ -302,7 +464,7 @@ function PortfolioPage() {
     if (key === "weight") {
       setRiskInputs((previous) => {
         const nextWeights = [...(previous.weights || [])];
-        nextWeights[payload.index] = payload.value;
+        nextWeights[payload.index] = toNumber(payload.value, 0);
 
         return {
           ...previous,
@@ -314,14 +476,34 @@ function PortfolioPage() {
 
     setRiskInputs((previous) => ({
       ...previous,
-      [key]: payload,
+      [key]: toNumber(payload, previous[key]),
     }));
   }
 
   function handleSimulationInputChange(key, value) {
     setSimulationInputs((previous) => ({
       ...previous,
-      [key]: value,
+      [key]: key === "seed" ? value : toNumber(value, previous[key]),
+    }));
+  }
+
+  function handleHealthInputChange(key, payload) {
+    if (key === "weight") {
+      setHealthInputs((previous) => {
+        const nextWeights = [...(previous.weights || [])];
+        nextWeights[payload.index] = toNumber(payload.value, 0);
+
+        return {
+          ...previous,
+          weights: nextWeights,
+        };
+      });
+      return;
+    }
+
+    setHealthInputs((previous) => ({
+      ...previous,
+      [key]: key === "seed" ? payload : toNumber(payload, previous[key]),
     }));
   }
 
@@ -521,7 +703,7 @@ function PortfolioPage() {
       setRiskAnalyticsError("");
 
       const normalizedWeights = (riskInputs.weights || []).map((weight) =>
-        Number(weight)
+        toNumber(weight, 0)
       );
 
       const response = await analyzePortfolioRisk({
@@ -529,8 +711,8 @@ function PortfolioPage() {
         weights: normalizedWeights,
         start: analysisUniverse.start,
         end: analysisUniverse.end,
-        riskFreeRate: riskInputs.riskFreeRate,
-        confidenceLevel: riskInputs.confidenceLevel,
+        riskFreeRate: toNumber(riskInputs.riskFreeRate, 0.02),
+        confidenceLevel: toNumber(riskInputs.confidenceLevel, 0.95),
       });
 
       setRiskAnalyticsResult(response);
@@ -552,8 +734,8 @@ function PortfolioPage() {
         tickers: analysisUniverse.tickers,
         start: analysisUniverse.start,
         end: analysisUniverse.end,
-        simulationCount: simulationInputs.simulationCount,
-        riskFreeRate: simulationInputs.riskFreeRate,
+        simulationCount: toNumber(simulationInputs.simulationCount, 2500),
+        riskFreeRate: toNumber(simulationInputs.riskFreeRate, 0.02),
         seed: simulationInputs.seed,
       });
 
@@ -564,6 +746,35 @@ function PortfolioPage() {
       );
     } finally {
       setIsLoadingSimulation(false);
+    }
+  }
+
+  async function handleAnalyzePortfolioHealth() {
+    try {
+      setIsLoadingPortfolioHealth(true);
+      setPortfolioHealthError("");
+
+      const normalizedWeights = (healthInputs.weights || []).map((weight) =>
+        toNumber(weight, 0)
+      );
+
+      const response = await analyzePortfolioHealth({
+        tickers: analysisUniverse.tickers,
+        weights: normalizedWeights,
+        start: analysisUniverse.start,
+        end: analysisUniverse.end,
+        riskFreeRate: toNumber(healthInputs.riskFreeRate, 0.02),
+        simulationCount: toNumber(healthInputs.simulationCount, 2500),
+        seed: healthInputs.seed,
+      });
+
+      setPortfolioHealthResult(response);
+    } catch (error) {
+      setPortfolioHealthError(
+        error.message || "Unable to analyze portfolio health."
+      );
+    } finally {
+      setIsLoadingPortfolioHealth(false);
     }
   }
 
@@ -623,6 +834,7 @@ function PortfolioPage() {
 
   const topSimulationPortfolios = useMemo(() => {
     const portfolios = simulationResult?.portfolios || [];
+
     return [...portfolios]
       .sort(
         (left, right) =>
@@ -734,21 +946,7 @@ function PortfolioPage() {
             isOpen={openSections.historicalPrices}
             onToggle={() => toggleSection("historicalPrices")}
           >
-            {historicalPricesError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {historicalPricesError}
-              </div>
-            ) : null}
+            {renderErrorBanner(historicalPricesError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <AnalyticsModuleCard
@@ -779,21 +977,7 @@ function PortfolioPage() {
             isOpen={openSections.dailyReturns}
             onToggle={() => toggleSection("dailyReturns")}
           >
-            {dailyReturnsError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {dailyReturnsError}
-              </div>
-            ) : null}
+            {renderErrorBanner(dailyReturnsError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <AnalyticsModuleCard
@@ -828,21 +1012,7 @@ function PortfolioPage() {
             isOpen={openSections.expectedReturns}
             onToggle={() => toggleSection("expectedReturns")}
           >
-            {expectedReturnsError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {expectedReturnsError}
-              </div>
-            ) : null}
+            {renderErrorBanner(expectedReturnsError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <AnalyticsModuleCard
@@ -876,21 +1046,7 @@ function PortfolioPage() {
             isOpen={openSections.covariance}
             onToggle={() => toggleSection("covariance")}
           >
-            {covarianceError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {covarianceError}
-              </div>
-            ) : null}
+            {renderErrorBanner(covarianceError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <AnalyticsModuleCard
@@ -921,21 +1077,7 @@ function PortfolioPage() {
             isOpen={openSections.correlation}
             onToggle={() => toggleSection("correlation")}
           >
-            {correlationError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {correlationError}
-              </div>
-            ) : null}
+            {renderErrorBanner(correlationError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <AnalyticsModuleCard
@@ -970,21 +1112,7 @@ function PortfolioPage() {
             isOpen={openSections.meanVariance}
             onToggle={() => toggleSection("meanVariance")}
           >
-            {meanVarianceError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {meanVarianceError}
-              </div>
-            ) : null}
+            {renderErrorBanner(meanVarianceError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <OptimizationControlsCard
@@ -1024,21 +1152,7 @@ function PortfolioPage() {
             isOpen={openSections.minimumVariance}
             onToggle={() => toggleSection("minimumVariance")}
           >
-            {minimumVarianceError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {minimumVarianceError}
-              </div>
-            ) : null}
+            {renderErrorBanner(minimumVarianceError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <OptimizationControlsCard
@@ -1071,21 +1185,7 @@ function PortfolioPage() {
             isOpen={openSections.maximumSharpe}
             onToggle={() => toggleSection("maximumSharpe")}
           >
-            {maximumSharpeError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {maximumSharpeError}
-              </div>
-            ) : null}
+            {renderErrorBanner(maximumSharpeError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <OptimizationControlsCard
@@ -1124,21 +1224,7 @@ function PortfolioPage() {
             isOpen={openSections.efficientFrontier}
             onToggle={() => toggleSection("efficientFrontier")}
           >
-            {efficientFrontierError ? (
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid rgba(239, 68, 68, 0.24)",
-                  background: "rgba(127, 29, 29, 0.12)",
-                  color: "#fecaca",
-                  lineHeight: 1.7,
-                }}
-              >
-                {efficientFrontierError}
-              </div>
-            ) : null}
+            {renderErrorBanner(efficientFrontierError)}
 
             <div style={{ display: "grid", gap: 18 }}>
               <OptimizationControlsCard
@@ -1182,20 +1268,7 @@ function PortfolioPage() {
 
       {activeTab === "risk" ? (
         <section style={{ display: "grid", gap: 18 }}>
-          {riskAnalyticsError ? (
-            <div
-              style={{
-                padding: "14px 16px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid rgba(239, 68, 68, 0.24)",
-                background: "rgba(127, 29, 29, 0.12)",
-                color: "#fecaca",
-                lineHeight: 1.7,
-              }}
-            >
-              {riskAnalyticsError}
-            </div>
-          ) : null}
+          {renderErrorBanner(riskAnalyticsError)}
 
           <RiskControlsCard
             tickers={analysisUniverse.tickers}
@@ -1301,20 +1374,7 @@ function PortfolioPage() {
 
       {activeTab === "simulation" ? (
         <section style={{ display: "grid", gap: 18 }}>
-          {simulationError ? (
-            <div
-              style={{
-                padding: "14px 16px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid rgba(239, 68, 68, 0.24)",
-                background: "rgba(127, 29, 29, 0.12)",
-                color: "#fecaca",
-                lineHeight: 1.7,
-              }}
-            >
-              {simulationError}
-            </div>
-          ) : null}
+          {renderErrorBanner(simulationError)}
 
           <SimulationControlsCard
             values={simulationInputs}
@@ -1450,21 +1510,155 @@ function PortfolioPage() {
 
       {activeTab === "health" ? (
         <section style={{ display: "grid", gap: 18 }}>
+          {renderErrorBanner(portfolioHealthError)}
+
+          <HealthControlsCard
+            tickers={analysisUniverse.tickers}
+            values={healthInputs}
+            onChange={handleHealthInputChange}
+            onAnalyze={handleAnalyzePortfolioHealth}
+            isLoading={isLoadingPortfolioHealth}
+          />
+
+          <PortfolioHealthSummaryCard result={portfolioHealthResult} />
+
+          <div
+            style={{
+              display: "grid",
+              gap: 18,
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            }}
+          >
+            <RiskMetricCard
+              title="Return score"
+              description="Score derived from expected annual return quality."
+              value={portfolioHealthResult?.return_score}
+              accent="green"
+            />
+
+            <RiskMetricCard
+              title="Risk score"
+              description="Composite risk score using Sharpe ratio, drawdown, and Value at Risk."
+              value={portfolioHealthResult?.risk_score}
+              accent="cyan"
+            />
+
+            <RiskMetricCard
+              title="Diversification score"
+              description="Score based on portfolio weight dispersion and diversification quality."
+              value={portfolioHealthResult?.diversification_score}
+              accent="amber"
+            />
+
+            <RiskMetricCard
+              title="Concentration score"
+              description="Score based on largest-position concentration risk."
+              value={portfolioHealthResult?.concentration_score}
+              accent="rose"
+            />
+
+            <RiskMetricCard
+              title="Optimization efficiency"
+              description="Portfolio efficiency relative to the best Monte Carlo Sharpe portfolio."
+              value={portfolioHealthResult?.optimization_efficiency_score}
+              accent="green"
+            />
+          </div>
+
           <Card
-            title="Portfolio health workspace"
-            subtitle="Portfolio health analytics UI will be wired next on top of the completed backend health engine."
+            title="Health recommendations"
+            subtitle="Actionable recommendations generated by the portfolio health engine."
+          >
+            {portfolioHealthResult?.recommendations?.length ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                }}
+              >
+                {portfolioHealthResult.recommendations.map(
+                  (recommendation, index) => (
+                    <div
+                      key={`${recommendation}-${index}`}
+                      style={{
+                        padding: "14px 16px",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid var(--border-primary)",
+                        background: "rgba(15, 23, 42, 0.48)",
+                        color: "var(--text-secondary)",
+                        lineHeight: 1.7,
+                      }}
+                    >
+                      {recommendation}
+                    </div>
+                  )
+                )}
+              </div>
+            ) : (
+              <div
+                style={{
+                  color: "var(--text-muted)",
+                  lineHeight: 1.8,
+                }}
+              >
+                Run portfolio health analysis to receive portfolio construction
+                recommendations from the backend health engine.
+              </div>
+            )}
+          </Card>
+
+          <Card
+            title="How to read portfolio health"
+            subtitle="Interpretation of the backend health score dimensions."
           >
             <div
               style={{
+                display: "grid",
+                gap: 14,
                 color: "var(--text-muted)",
                 lineHeight: 1.8,
               }}
             >
-              The backend health analytics module already exists, but this
-              frontend surface has not been integrated yet in the current batch.
-              We’ll wire the health score cards, recommendations, and summary
-              presentation next without disturbing the market data, statistics,
-              optimization, risk, and simulation flows.
+              <div>
+                <strong style={{ color: "var(--text-secondary)" }}>
+                  Overall health score:
+                </strong>{" "}
+                A composite 0–100 portfolio quality score combining return
+                quality, risk quality, diversification, concentration control,
+                and optimization efficiency.
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)" }}>
+                  Return score:
+                </strong>{" "}
+                Evaluates how attractive the expected annual return is relative
+                to the engine’s scoring thresholds.
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)" }}>
+                  Risk score:
+                </strong>{" "}
+                Rewards stronger Sharpe ratios and penalizes large drawdowns and
+                large Value-at-Risk.
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)" }}>
+                  Diversification and concentration:
+                </strong>{" "}
+                These scores inspect whether capital is spread sensibly across
+                holdings or over-concentrated in a few positions.
+              </div>
+
+              <div>
+                <strong style={{ color: "var(--text-secondary)" }}>
+                  Optimization efficiency:
+                </strong>{" "}
+                Compares the portfolio’s Sharpe quality to the best Sharpe ratio
+                discovered during Monte Carlo simulation.
+              </div>
             </div>
           </Card>
         </section>

@@ -73,6 +73,46 @@ class RiskAnalyticsService:
         return daily_returns @ weight_series
 
     @staticmethod
+    def analyze_portfolio_risk_from_returns(
+        returns: pd.DataFrame,
+        weights: list[float],
+        *,
+        risk_free_rate: float = 0.02,
+        confidence_level: float = DEFAULT_CONFIDENCE_LEVEL,
+    ) -> RiskAnalyticsResult:
+        """
+        Compute portfolio risk analytics from a precomputed daily returns
+        matrix.
+
+        This helper is used by higher-level orchestration flows that
+        already hold historical returns and need to avoid redundant
+        market-data retrieval.
+        """
+
+        if returns.empty:
+            raise ValueError(
+                "Daily returns data cannot be empty."
+            )
+
+        if len(returns.columns) != len(weights):
+            raise ValueError(
+                "Number of weights must match number of return series."
+            )
+
+        portfolio_returns = returns @ pd.Series(
+            weights,
+            index=returns.columns,
+            dtype=float,
+        )
+
+        return calculate_risk_metrics(
+            portfolio_returns,
+            risk_free_rate=risk_free_rate,
+            confidence_level=confidence_level,
+        )
+
+
+    @staticmethod
     def analyze_portfolio_risk(
         tickers: list[str],
         weights: list[float],
@@ -86,17 +126,19 @@ class RiskAnalyticsService:
         Compute portfolio risk analytics.
         """
 
-        portfolio_returns = (
-            RiskAnalyticsService._prepare_portfolio_returns(
-                tickers,
-                weights,
+        daily_returns = (
+            MarketDataService.get_daily_returns(
+                tickers=tickers,
                 start=start,
                 end=end,
             )
         )
 
-        return calculate_risk_metrics(
-            portfolio_returns,
-            risk_free_rate=risk_free_rate,
-            confidence_level=confidence_level,
+        return (
+            RiskAnalyticsService.analyze_portfolio_risk_from_returns(
+                daily_returns,
+                weights,
+                risk_free_rate=risk_free_rate,
+                confidence_level=confidence_level,
+            )
         )

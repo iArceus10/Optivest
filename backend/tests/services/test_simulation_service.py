@@ -152,3 +152,40 @@ def test_run_simulation(
         risk_free_rate=0.03,
         seed=42,
     )
+
+def test_prepare_simulation_inputs_from_returns() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02, -0.01],
+            "MSFT": [0.005, 0.015, -0.002],
+        }
+    )
+
+    expected_returns, covariance_matrix = (
+        SimulationService._prepare_simulation_inputs_from_returns(
+            returns
+        )
+    )
+
+    assert list(expected_returns.index) == ["AAPL", "MSFT"]
+    assert list(covariance_matrix.index) == ["AAPL", "MSFT"]
+    assert list(covariance_matrix.columns) == ["AAPL", "MSFT"]
+
+
+def test_run_simulation_from_returns() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02, -0.01, 0.005],
+            "MSFT": [0.005, 0.015, -0.002, 0.01],
+        }
+    )
+
+    result = SimulationService.run_simulation_from_returns(
+        returns,
+        simulation_count=100,
+        risk_free_rate=0.02,
+        seed=42,
+    )
+
+    assert isinstance(result, MonteCarloSimulationResult)
+    assert len(result.portfolios) == 100

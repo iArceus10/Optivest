@@ -161,3 +161,19 @@ def test_analyze_portfolio_risk(
     assert kwargs["confidence_level"] == pytest.approx(
         0.99
     )
+
+def test_analyze_portfolio_risk_from_returns() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, -0.01, 0.02, 0.005],
+            "MSFT": [0.005, -0.002, 0.015, 0.01],
+        }
+    )
+
+    result = RiskAnalyticsService.analyze_portfolio_risk_from_returns(
+        returns,
+        [0.5, 0.5],
+        risk_free_rate=0.02,
+    )
+
+    assert isinstance(result, RiskAnalyticsResult)

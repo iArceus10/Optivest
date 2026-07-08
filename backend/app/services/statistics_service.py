@@ -43,6 +43,75 @@ class StatisticsService:
             start=start,
             end=end,
         )
+    
+    @staticmethod
+    def get_expected_returns_from_returns(
+        returns: pd.DataFrame,
+    ) -> pd.Series:
+        """
+        Compute annualized expected returns from a precomputed daily
+        returns matrix.
+
+        This helper exists for orchestration paths that already hold
+        historical returns and need to avoid redundant market-data
+        retrieval.
+        """
+
+        return calculate_expected_annual_returns(returns)
+
+    @staticmethod
+    def get_portfolio_expected_return_from_returns(
+        returns: pd.DataFrame,
+        weights: list[float],
+    ) -> float:
+        """
+        Compute annualized portfolio expected return from a precomputed
+        daily returns matrix.
+        """
+
+        if returns.empty:
+            raise ValueError(
+                "Daily returns data cannot be empty."
+            )
+
+        if len(returns.columns) != len(weights):
+            raise ValueError(
+                "Number of weights must match number of return series."
+            )
+
+        expected_returns = (
+            StatisticsService.get_expected_returns_from_returns(
+                returns
+            )
+        )
+
+        return float(expected_returns.dot(weights))
+
+    @staticmethod
+    def get_portfolio_volatility_from_returns(
+        returns: pd.DataFrame,
+        weights: list[float],
+    ) -> float:
+        """
+        Compute annualized portfolio volatility from a precomputed daily
+        returns matrix.
+        """
+
+        if returns.empty:
+            raise ValueError(
+                "Daily returns data cannot be empty."
+            )
+
+        if len(returns.columns) != len(weights):
+            raise ValueError(
+                "Number of weights must match number of return series."
+            )
+
+        return calculate_portfolio_volatility(
+            returns,
+            weights,
+        )
+
 
     @staticmethod
     def get_expected_returns(
@@ -61,7 +130,7 @@ class StatisticsService:
             end=end,
         )
 
-        return calculate_expected_annual_returns(
+        return StatisticsService.get_expected_returns_from_returns(
             returns
         )
     
@@ -82,16 +151,18 @@ class StatisticsService:
                 "Number of weights must match number of tickers."
             )
 
-        expected_returns = (
-            StatisticsService.get_expected_returns(
-                tickers,
-                start=start,
-                end=end,
-            )
+        returns = StatisticsService._get_daily_returns(
+            tickers,
+            start=start,
+            end=end,
         )
 
-        return float(
-            expected_returns.dot(weights)
+        return (
+            StatisticsService
+            .get_portfolio_expected_return_from_returns(
+                returns,
+                weights,
+            )
         )
 
     @staticmethod
@@ -157,9 +228,11 @@ class StatisticsService:
             end=end,
         )
 
-        return calculate_portfolio_volatility(
-            returns,
-            weights,
+        return (
+            StatisticsService.get_portfolio_volatility_from_returns(
+                returns,
+                weights,
+            )
         )
     
 

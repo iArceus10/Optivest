@@ -35,7 +35,7 @@ class SimulationService:
 
     This service intentionally performs no mathematical computation.
     """
-
+    @staticmethod
     def _prepare_simulation_inputs(
         tickers: list[str],
         *,
@@ -76,6 +76,66 @@ class SimulationService:
             expected_returns,
             covariance_matrix,
         )
+    
+    @staticmethod
+    def _prepare_simulation_inputs_from_returns(
+        returns: pd.DataFrame,
+    ) -> tuple[pd.Series, pd.DataFrame]:
+        """
+        Prepare Monte Carlo simulation inputs from a precomputed daily
+        returns matrix.
+        """
+
+        if returns.empty:
+            raise ValueError(
+                "Daily returns data cannot be empty."
+            )
+
+        expected_returns = calculate_expected_annual_returns(
+            returns
+        )
+
+        covariance_matrix = (
+            calculate_annualized_covariance_matrix(
+                returns
+            )
+        )
+
+        return (
+            expected_returns,
+            covariance_matrix,
+        )
+
+    @staticmethod
+    def run_simulation_from_returns(
+        returns: pd.DataFrame,
+        *,
+        simulation_count: int = DEFAULT_SIMULATION_COUNT,
+        risk_free_rate: float = DEFAULT_RISK_FREE_RATE,
+        seed: int | None = None,
+    ) -> MonteCarloSimulationResult:
+        """
+        Execute Monte Carlo portfolio simulation from a precomputed daily
+        returns matrix.
+        """
+
+        (
+            expected_returns,
+            covariance_matrix,
+        ) = (
+            SimulationService._prepare_simulation_inputs_from_returns(
+                returns
+            )
+        )
+
+        return run_monte_carlo_simulation(
+            expected_returns,
+            covariance_matrix,
+            simulation_count=simulation_count,
+            risk_free_rate=risk_free_rate,
+            seed=seed,
+        )
+
 
     @staticmethod
     def run_simulation(
@@ -91,20 +151,14 @@ class SimulationService:
         Execute Monte Carlo portfolio simulation.
         """
 
-        (
-            expected_returns,
-            covariance_matrix,
-        ) = (
-            SimulationService._prepare_simulation_inputs(
-                tickers,
-                start=start,
-                end=end,
-            )
+        returns = MarketDataService.get_daily_returns(
+            tickers=tickers,
+            start=start,
+            end=end,
         )
 
-        return run_monte_carlo_simulation(
-            expected_returns,
-            covariance_matrix,
+        return SimulationService.run_simulation_from_returns(
+            returns,
             simulation_count=simulation_count,
             risk_free_rate=risk_free_rate,
             seed=seed,

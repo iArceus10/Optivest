@@ -43,7 +43,7 @@ function SimulationControlsCard({
 
             <input
               type="number"
-              min="1"
+              min="500"
               step="100"
               value={values.simulationCount}
               onChange={(event) =>

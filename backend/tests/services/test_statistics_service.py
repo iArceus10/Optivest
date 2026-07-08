@@ -123,3 +123,52 @@ def test_weight_count_validation():
             start=date(2024, 1, 1),
             end=date(2024, 12, 31),
         )
+
+def test_get_portfolio_expected_return_from_returns() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02, 0.00],
+            "MSFT": [0.02, 0.01, -0.01],
+        }
+    )
+
+    result = StatisticsService.get_portfolio_expected_return_from_returns(
+        returns,
+        [0.4, 0.6],
+    )
+
+    assert isinstance(result, float)
+
+
+def test_get_portfolio_volatility_from_returns() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02, 0.00],
+            "MSFT": [0.02, 0.01, -0.01],
+        }
+    )
+
+    result = StatisticsService.get_portfolio_volatility_from_returns(
+        returns,
+        [0.4, 0.6],
+    )
+
+    assert isinstance(result, float)
+
+
+def test_get_portfolio_expected_return_from_returns_weight_mismatch() -> None:
+    returns = pd.DataFrame(
+        {
+            "AAPL": [0.01, 0.02],
+            "MSFT": [0.02, 0.01],
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Number of weights must match number of return series.",
+    ):
+        StatisticsService.get_portfolio_expected_return_from_returns(
+            returns,
+            [1.0],
+        )
